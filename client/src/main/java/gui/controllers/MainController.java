@@ -148,8 +148,20 @@ public class MainController {
     }
 
     private void openEditDialog(HumanBeingFx fx) {
-        // Заглушка — реализация на Шаге 8.
-        System.out.println("Edit dialog will be implemented in Step 8: " + fx.getName());
+        if (collectionCanvas.getScene() == null) return;
+        ObjectFormController.openEdit(
+                collectionCanvas.getScene().getWindow(), fx, this::triggerImmediateSync);
+    }
+
+    private void openInsertDialog() {
+        if (collectionCanvas.getScene() == null) return;
+        ObjectFormController.openInsert(
+                collectionCanvas.getScene().getWindow(), this::triggerImmediateSync);
+    }
+
+    /** После успешной операции мутации — перезапускаем Poller, чтобы не ждать 3 секунды. */
+    private void triggerImmediateSync() {
+        poller.restart();
     }
 
     private void bindLocalizedTexts() {
@@ -276,7 +288,7 @@ public class MainController {
 
     // ---- Handlers (заглушки на Шаге 6, реализация на Шагах 8-9) ----
 
-    @FXML private void onAdd() {}
+    @FXML private void onAdd() { openInsertDialog(); }
     @FXML private void onDelete() {}
     @FXML private void onClear() {}
     @FXML private void onInfo() {}
