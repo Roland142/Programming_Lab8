@@ -84,17 +84,24 @@ Java Object Serialization.
 
 ## Требования
 
-- **JDK 17** (Maven и `java` из этой версии).
+- **JDK 17**. Локально установить можно через
+  `brew install openjdk@17` (далее
+  `export JAVA_HOME=/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home`).
+- **Maven** — *необязательно*. В корне репозитория есть
+  Maven Wrapper (`mvnw`/`mvnw.cmd`), который сам скачает Maven 3.9.6
+  при первом запуске.
 - **PostgreSQL 16+** с базой `studs`, ролью `studs` и таблицами
   `users` + `human_beings` (схема в `server/src/db/schema.sql`).
 - **`~/.pgpass`** в формате `host:port:db:user:password`, права 600.
 
 ## Сборка
 
-Из корня проекта:
+Из корня репозитория:
 
 ```bash
-mvn clean install -DskipTests
+./mvnw clean install -DskipTests          # без локального Maven
+# или
+mvn clean install -DskipTests              # если Maven уже установлен
 ```
 
 В результате собираются два fat-jar'а:

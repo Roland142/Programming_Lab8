@@ -9,7 +9,9 @@ import java.sql.Statement;
 /** Открывает JDBC-соединение с PostgreSQL, используя credentials из ~/.pgpass. */
 public class DatabaseConnection {
 
-    private static final String URL = "jdbc:postgresql://pg/studs";
+    private static final String URL = System.getenv("DB_URL") != null
+            ? System.getenv("DB_URL")
+            : "jdbc:postgresql://pg/studs";
 
     public static Connection open() throws SQLException, IOException {
         String[] creds = PgPassReader.readCredentials();
