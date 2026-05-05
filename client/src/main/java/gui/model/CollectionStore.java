@@ -1,25 +1,35 @@
 package gui.model;
 
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableMap;
+import javafx.collections.ObservableList;
 import network.HumanBeingEntry;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
  * Наблюдаемое локальное хранилище коллекции HumanBeing.
- * При каждом poll-тике метод {@link #sync(List)} делает diff и обновляет
- * содержимое: добавляет новые, удаляет исчезнувшие, обновляет изменённые.
- * Слушатели карты (например, канвас) получают per-key события.
+ * Хранит элементы в ObservableList (для TableView и канваса),
+ * параллельно поддерживает Map по ключу для быстрого lookup.
+ *
+ * При каждом poll-тике {@link #sync(List)} делает diff и обновляет
+ * содержимое: добавляет новые, обновляет существующие через
+ * {@link HumanBeingFx#applyFrom}, удаляет исчезнувшие.
  */
 public class CollectionStore {
 
-    private final ObservableMap<Long, HumanBeingFx> items = FXCollections.observableHashMap();
+    private final ObservableList<HumanBeingFx> items = FXCollections.observableArrayList();
+    private final Map<Long, HumanBeingFx> byKey = new HashMap<>();
 
-    public ObservableMap<Long, HumanBeingFx> items() {
+    public ObservableList<HumanBeingFx> items() {
         return items;
+    }
+
+    public HumanBeingFx getByKey(long key) {
+        return byKey.get(key);
     }
 
     public int size() {
@@ -31,17 +41,26 @@ public class CollectionStore {
         Set<Long> incoming = new HashSet<>();
         for (HumanBeingEntry e : entries) {
             incoming.add(e.getKey());
-            HumanBeingFx existing = items.get(e.getKey());
+            HumanBeingFx existing = byKey.get(e.getKey());
             if (existing == null) {
-                items.put(e.getKey(), HumanBeingFx.from(e));
+                HumanBeingFx fresh = HumanBeingFx.from(e);
+                byKey.put(e.getKey(), fresh);
+                items.add(fresh);
             } else {
                 existing.applyFrom(e);
             }
         }
-        items.keySet().removeIf(k -> !incoming.contains(k));
+        items.removeIf(fx -> {
+            if (!incoming.contains(fx.getKey())) {
+                byKey.remove(fx.getKey());
+                return true;
+            }
+            return false;
+        });
     }
 
     public void clear() {
         items.clear();
+        byKey.clear();
     }
 }
