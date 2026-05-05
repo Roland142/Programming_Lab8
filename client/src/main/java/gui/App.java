@@ -34,10 +34,16 @@ public class App extends Application {
 
     public static void showLogin() {
         loadScene("/fxml/login.fxml");
+        primaryStage.setWidth(780);
+        primaryStage.setHeight(780);
+        primaryStage.centerOnScreen();
     }
 
     public static void showMain() {
         loadScene("/fxml/main.fxml");
+        primaryStage.setWidth(1400);
+        primaryStage.setHeight(820);
+        primaryStage.centerOnScreen();
     }
 
     /** Контроллер сцены может зарегистрировать cleanup, который вызовется при close request. */

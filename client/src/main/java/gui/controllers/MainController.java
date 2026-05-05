@@ -83,6 +83,10 @@ public class MainController {
         configureCanvas();
         configureStatusBar();
 
+        // Кастомные cellFactory не пересоздаются при смене локали — заставим таблицу
+        // перерисовать ячейки, чтобы локализованные mood и числа обновились.
+        LocaleManager.get().localeProperty().addListener((obs, prev, value) -> objectsTable.refresh());
+
         App.onClose(this::shutdown);
         poller.start();
     }

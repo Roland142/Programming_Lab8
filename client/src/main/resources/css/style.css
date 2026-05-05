@@ -225,6 +225,16 @@
     -fx-background-color: #1f1f1f;
 }
 
+.toolbar-icon {
+    -fx-text-fill: inherit;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.toolbar-btn-primary .toolbar-icon {
+    -fx-text-fill: #fff;
+}
+
 /* ===== Левая панель: фильтр и таблица ===== */
 .left-pane {
     -fx-background-color: #f4ede0;

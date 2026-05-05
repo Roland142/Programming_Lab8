@@ -35,12 +35,20 @@
 
     <!-- Toolbar -->
     <HBox styleClass="toolbar" alignment="CENTER_LEFT">
-        <Button fx:id="addButton" styleClass="toolbar-btn,toolbar-btn-primary" onAction="#onAdd"/>
-        <Button fx:id="deleteButton" styleClass="toolbar-btn" onAction="#onDelete"/>
+        <Button fx:id="addButton" styleClass="toolbar-btn,toolbar-btn-primary" onAction="#onAdd">
+            <graphic><Label text="+" styleClass="toolbar-icon"/></graphic>
+        </Button>
+        <Button fx:id="deleteButton" styleClass="toolbar-btn" onAction="#onDelete">
+            <graphic><Label text="🗑" styleClass="toolbar-icon"/></graphic>
+        </Button>
         <Button fx:id="clearButton" styleClass="toolbar-btn" onAction="#onClear"/>
-        <Button fx:id="infoButton" styleClass="toolbar-btn" onAction="#onInfo"/>
+        <Button fx:id="infoButton" styleClass="toolbar-btn" onAction="#onInfo">
+            <graphic><Label text="ⓘ" styleClass="toolbar-icon"/></graphic>
+        </Button>
         <Button fx:id="helpButton" styleClass="toolbar-btn" onAction="#onHelp"/>
-        <Button fx:id="scriptButton" styleClass="toolbar-btn" onAction="#onScript"/>
+        <Button fx:id="scriptButton" styleClass="toolbar-btn" onAction="#onScript">
+            <graphic><Label text="▤" styleClass="toolbar-icon"/></graphic>
+        </Button>
         <Button fx:id="historyButton" styleClass="toolbar-btn" onAction="#onHistory"/>
         <MenuButton fx:id="moreMenuButton" styleClass="toolbar-btn">
             <items>
