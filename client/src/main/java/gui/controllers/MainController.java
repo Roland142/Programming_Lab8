@@ -9,6 +9,8 @@ import gui.model.CollectionStore;
 import gui.model.HumanBeingFx;
 import gui.net.Poller;
 import gui.util.LocalizedFormatter;
+import gui.util.UserColorAssigner;
+import gui.view.CollectionCanvas;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.IntegerBinding;
 import javafx.collections.transformation.FilteredList;
@@ -69,6 +71,7 @@ public class MainController {
 
     private final CollectionStore store = new CollectionStore();
     private final Poller poller = new Poller(store);
+    private CollectionCanvas collectionCanvas;
 
     @FXML
     public void initialize() {
@@ -77,10 +80,76 @@ public class MainController {
         configureUserLabel();
         configureTable();
         configureFilterAndSort();
+        configureCanvas();
         configureStatusBar();
 
         App.onClose(this::shutdown);
         poller.start();
+    }
+
+    private void configureCanvas() {
+        collectionCanvas = new CollectionCanvas(store);
+        collectionCanvas.prefWidthProperty().bind(canvasPane.widthProperty());
+        collectionCanvas.prefHeightProperty().bind(canvasPane.heightProperty());
+        canvasPane.getChildren().add(collectionCanvas);
+
+        collectionCanvas.setOnObjectClick(this::showObjectPopup);
+
+        // Двойной клик в таблице по своему объекту → редактирование (Шаг 8).
+        objectsTable.setRowFactory(tv -> {
+            javafx.scene.control.TableRow<HumanBeingFx> row = new javafx.scene.control.TableRow<>();
+            row.setOnMouseClicked(e -> {
+                if (e.getClickCount() == 2 && !row.isEmpty()) {
+                    HumanBeingFx fx = row.getItem();
+                    if (fx.getOwnerLogin().equals(Session.get().context().getLogin())) {
+                        openEditDialog(fx);
+                    }
+                }
+            });
+            return row;
+        });
+
+        // Раскраска ячеек владельца и настроения (текстовый цвет)
+        ownerCol.setCellFactory(col -> new javafx.scene.control.TableCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setStyle("");
+                    return;
+                }
+                setText(item);
+                setStyle("-fx-text-fill: " + UserColorAssigner.hexFor(item) + "; -fx-font-weight: bold;");
+            }
+        });
+
+        moodCol.setCellFactory(col -> new javafx.scene.control.TableCell<>() {
+            @Override
+            protected void updateItem(Mood item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setStyle("");
+                    return;
+                }
+                setText(LocaleManager.get().tr("mood." + item.name()));
+                setStyle("-fx-text-fill: " + gui.util.MoodColorMap.hexFor(item) + ";");
+            }
+        });
+    }
+
+    private void showObjectPopup(HumanBeingFx fx) {
+        if (collectionCanvas.getScene() == null) return;
+        var window = collectionCanvas.getScene().getWindow();
+        double x = window.getX() + window.getWidth() / 2 - 190;
+        double y = window.getY() + window.getHeight() / 2 - 200;
+        ObjectPopupController.show(window, x, y, fx, this::openEditDialog);
+    }
+
+    private void openEditDialog(HumanBeingFx fx) {
+        // Заглушка — реализация на Шаге 8.
+        System.out.println("Edit dialog will be implemented in Step 8: " + fx.getName());
     }
 
     private void bindLocalizedTexts() {
@@ -164,17 +233,7 @@ public class MainController {
         idCol.setCellFactory(col -> numericCell(v -> LocalizedFormatter.formatLong(v.longValue())));
         keyCol.setCellFactory(col -> numericCell(v -> LocalizedFormatter.formatLong(v.longValue())));
 
-        moodCol.setCellFactory(col -> new javafx.scene.control.TableCell<>() {
-            @Override
-            protected void updateItem(Mood item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                    return;
-                }
-                setText(LocaleManager.get().tr("mood." + item.name()));
-            }
-        });
+        // Цветной cellFactory для moodCol и ownerCol устанавливается в configureCanvas.
     }
 
     private <T extends Number> javafx.scene.control.TableCell<HumanBeingFx, Number>

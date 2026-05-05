@@ -351,3 +351,71 @@
     -fx-font-weight: bold;
     -fx-letter-spacing: 0.18em;
 }
+
+/* ===== Popup карточка объекта ===== */
+.popup-root {
+    -fx-background-color: #2b2b2b;
+    -fx-background-radius: 4;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 16, 0, 0, 4);
+}
+
+.popup-header {
+    -fx-background-color: #c8593a;
+    -fx-background-radius: 4 4 0 0;
+}
+
+.popup-name {
+    -fx-text-fill: #fff;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+}
+
+.popup-owner-icon {
+    -fx-text-fill: #fff;
+    -fx-font-size: 11px;
+}
+
+.popup-owner {
+    -fx-text-fill: #fff;
+    -fx-font-size: 12px;
+}
+
+.popup-body {
+    -fx-background-color: #2b2b2b;
+}
+
+.popup-row {
+    -fx-border-color: transparent transparent #3a3a3a transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.popup-caption {
+    -fx-text-fill: #8a8174;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-letter-spacing: 0.18em;
+}
+
+.popup-value {
+    -fx-text-fill: #fff;
+    -fx-font-size: 13px;
+}
+
+.popup-footer {
+    -fx-background-color: #2b2b2b;
+    -fx-background-radius: 0 0 4 4;
+}
+
+.popup-edit-btn {
+    -fx-background-color: #c8593a;
+    -fx-text-fill: #fff;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-letter-spacing: 0.14em;
+    -fx-padding: 14 0 14 0;
+    -fx-background-radius: 2;
+}
+
+.popup-edit-btn:hover {
+    -fx-background-color: #b04d31;
+}

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="gui.controllers.ObjectPopupController"
+      styleClass="popup-root"
+      prefWidth="380">
+
+    <!-- Header (цвет владельца) -->
+    <VBox fx:id="headerBox" styleClass="popup-header" spacing="6">
+        <padding><Insets top="18" right="20" bottom="18" left="20"/></padding>
+        <Label fx:id="nameLabel" styleClass="popup-name"/>
+        <HBox alignment="CENTER_LEFT" spacing="6">
+            <Label text="👤" styleClass="popup-owner-icon"/>
+            <Label fx:id="ownerLabel" styleClass="popup-owner"/>
+        </HBox>
+    </VBox>
+
+    <!-- Body -->
+    <VBox styleClass="popup-body" spacing="0">
+        <padding><Insets top="14" right="20" bottom="14" left="20"/></padding>
+
+        <HBox styleClass="popup-row" alignment="CENTER_LEFT">
+            <padding><Insets top="8" bottom="8"/></padding>
+            <Label fx:id="idCaption" styleClass="popup-caption" prefWidth="160"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="idValue" styleClass="popup-value"/>
+        </HBox>
+
+        <HBox styleClass="popup-row" alignment="CENTER_LEFT">
+            <padding><Insets top="8" bottom="8"/></padding>
+            <Label fx:id="coordsCaption" styleClass="popup-caption" prefWidth="160"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="coordsValue" styleClass="popup-value"/>
+        </HBox>
+
+        <HBox styleClass="popup-row" alignment="CENTER_LEFT">
+            <padding><Insets top="8" bottom="8"/></padding>
+            <Label fx:id="speedCaption" styleClass="popup-caption" prefWidth="160"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="speedValue" styleClass="popup-value"/>
+        </HBox>
+
+        <HBox styleClass="popup-row" alignment="CENTER_LEFT">
+            <padding><Insets top="8" bottom="8"/></padding>
+            <Label fx:id="moodCaption" styleClass="popup-caption" prefWidth="160"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="moodValue" styleClass="popup-value"/>
+        </HBox>
+
+        <HBox styleClass="popup-row" alignment="CENTER_LEFT">
+            <padding><Insets top="8" bottom="8"/></padding>
+            <Label fx:id="carCaption" styleClass="popup-caption" prefWidth="160"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="carValue" styleClass="popup-value"/>
+        </HBox>
+
+        <HBox styleClass="popup-row" alignment="CENTER_LEFT">
+            <padding><Insets top="8" bottom="8"/></padding>
+            <Label fx:id="heroCaption" styleClass="popup-caption" prefWidth="160"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="heroValue" styleClass="popup-value"/>
+        </HBox>
+    </VBox>
+
+    <!-- Footer: кнопка редактирования -->
+    <VBox fx:id="footerBox" styleClass="popup-footer">
+        <padding><Insets top="6" right="14" bottom="14" left="14"/></padding>
+        <Button fx:id="editButton" styleClass="btn,popup-edit-btn"
+                onAction="#onEdit" maxWidth="Infinity"/>
+    </VBox>
+</VBox>
