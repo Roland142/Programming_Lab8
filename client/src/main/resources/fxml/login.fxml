@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.control.Label?>
+
+<!--
+    Заглушка экрана авторизации (Шаг 2).
+    Полная разметка под дизайн будет на Шаге 4.
+-->
+<StackPane xmlns="http://javafx.com/javafx/17"
+           xmlns:fx="http://javafx.com/fxml/1"
+           prefWidth="780" prefHeight="760"
+           style="-fx-background-color: #f4ede0;">
+    <VBox alignment="CENTER" spacing="12">
+        <Label text="КОЛЛЕКЦИЯ ОБЪЕКТОВ"
+               style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1f1f1f;"/>
+        <Label text="Менеджер коллекции"
+               style="-fx-font-size: 14px; -fx-text-fill: #555;"/>
+        <Label text="Lab9 — заглушка перед реализацией экрана авторизации"
+               style="-fx-font-size: 12px; -fx-text-fill: #999; -fx-padding: 24 0 0 0;"/>
+    </VBox>
+</StackPane>
