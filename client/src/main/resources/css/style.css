@@ -1,0 +1,154 @@
+/* ===== Палитра (по дизайну GUI.pdf) ===== */
+.root {
+    -fx-font-family: "System", "Helvetica Neue", Arial, sans-serif;
+    -fx-font-smoothing-type: gray;
+}
+
+.root-screen {
+    -fx-background-color: #f4ede0;
+}
+
+/* ===== Тёмная шапка ===== */
+.header {
+    -fx-background-color: #1f1f1f;
+}
+
+.header-title {
+    -fx-text-fill: #f4ede0;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-letter-spacing: 0.15em;
+}
+
+.header-subtitle {
+    -fx-text-fill: #b9b1a3;
+    -fx-font-size: 13px;
+}
+
+/* ===== Полоса с переключателем языка ===== */
+.language-bar {
+    -fx-background-color: #ebe2d1;
+    -fx-border-color: transparent transparent #d8cdb6 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.language-label {
+    -fx-text-fill: #6e655a;
+    -fx-font-size: 11px;
+    -fx-letter-spacing: 0.18em;
+}
+
+.language-combo {
+    -fx-background-color: #fff;
+    -fx-background-radius: 2;
+    -fx-border-color: #d8cdb6;
+    -fx-border-radius: 2;
+    -fx-padding: 2 6 2 8;
+    -fx-font-size: 13px;
+    -fx-text-fill: #1f1f1f;
+}
+
+.language-combo .arrow-button {
+    -fx-background-color: transparent;
+}
+
+.language-combo .arrow {
+    -fx-background-color: #6e655a;
+}
+
+/* ===== Карточка ===== */
+.card {
+    -fx-background-color: #ebe2d1;
+    -fx-background-radius: 4;
+}
+
+.card-title {
+    -fx-text-fill: #1f1f1f;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-letter-spacing: 0.12em;
+    -fx-padding: 0 0 8 0;
+}
+
+.field-label {
+    -fx-text-fill: #6e655a;
+    -fx-font-size: 11px;
+    -fx-letter-spacing: 0.18em;
+}
+
+.text-input,
+.password-field {
+    -fx-background-color: #fff;
+    -fx-background-radius: 2;
+    -fx-border-color: transparent;
+    -fx-padding: 12 14 12 14;
+    -fx-font-size: 14px;
+    -fx-text-fill: #1f1f1f;
+    -fx-prompt-text-fill: #b3aa9c;
+}
+
+.text-input:focused,
+.password-field:focused {
+    -fx-border-color: #c8593a;
+    -fx-border-width: 1;
+    -fx-border-radius: 2;
+}
+
+/* ===== Кнопки ===== */
+.btn {
+    -fx-background-radius: 2;
+    -fx-padding: 14 20 14 20;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-letter-spacing: 0.14em;
+    -fx-cursor: hand;
+}
+
+.btn-primary {
+    -fx-background-color: #1f1f1f;
+    -fx-text-fill: #fff;
+}
+
+.btn-primary:hover {
+    -fx-background-color: #353535;
+}
+
+.btn-primary:disabled {
+    -fx-opacity: 0.55;
+}
+
+.btn-accent {
+    -fx-background-color: #c8593a;
+    -fx-text-fill: #fff;
+}
+
+.btn-accent:hover {
+    -fx-background-color: #b04d31;
+}
+
+.btn-accent:disabled {
+    -fx-opacity: 0.55;
+}
+
+.btn-secondary {
+    -fx-background-color: #ebe2d1;
+    -fx-text-fill: #1f1f1f;
+    -fx-border-color: #d8cdb6;
+    -fx-border-radius: 2;
+    -fx-border-width: 1;
+}
+
+.btn-secondary:hover {
+    -fx-background-color: #d8cdb6;
+}
+
+/* ===== Плашка ошибки ===== */
+.error-box {
+    -fx-background-color: #c8593a;
+    -fx-background-radius: 2;
+}
+
+.error-text {
+    -fx-text-fill: #fff;
+    -fx-font-size: 13px;
+}

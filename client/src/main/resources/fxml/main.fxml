@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+    Заглушка главного окна (Шаги 4-5).
+    Полная разметка с тулбаром, таблицей и канвасом будет на Шаге 6.
+-->
+<StackPane xmlns="http://javafx.com/javafx/17"
+           xmlns:fx="http://javafx.com/fxml/1"
+           styleClass="root-screen"
+           prefWidth="780" prefHeight="780">
+    <padding><Insets top="40"/></padding>
+    <VBox alignment="TOP_CENTER" spacing="12">
+        <Label text="Главное окно — заглушка"
+               style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1f1f1f;"/>
+        <Label text="Авторизация прошла. Полный UI появится на Шаге 6."
+               style="-fx-font-size: 14px; -fx-text-fill: #6e655a;"/>
+    </VBox>
+</StackPane>
