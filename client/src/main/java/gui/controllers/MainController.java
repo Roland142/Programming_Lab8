@@ -286,18 +286,200 @@ public class MainController {
         Session.get().gateway().close();
     }
 
-    // ---- Handlers (заглушки на Шаге 6, реализация на Шагах 8-9) ----
+    // ============================================================
+    // Команды тулбара
+    // ============================================================
+
+    private javafx.stage.Window window() {
+        return objectsTable.getScene().getWindow();
+    }
+
+    private void runCommand(String commandName, String[] args, elements.HumanBeing hb,
+                            java.util.function.Consumer<network.Response> onResponse) {
+        var ctx = Session.get().context();
+        network.Request request = new network.Request(commandName, args, hb,
+                ctx.getLogin(), ctx.getPasswordHash());
+        var task = Session.get().gateway().sendTask(request);
+        task.setOnSucceeded(e -> onResponse.accept(task.getValue()));
+        task.setOnFailed(e -> gui.util.Dialogs.info(window(), "login.error.server",
+                LocaleManager.get().tr("login.error.server")));
+        new Thread(task, "cmd-" + commandName).start();
+    }
 
     @FXML private void onAdd() { openInsertDialog(); }
-    @FXML private void onDelete() {}
-    @FXML private void onClear() {}
-    @FXML private void onInfo() {}
-    @FXML private void onHelp() {}
-    @FXML private void onScript() {}
-    @FXML private void onHistory() {}
-    @FXML private void onPrintAscending() {}
-    @FXML private void onPrintFieldSpeed() {}
-    @FXML private void onRemoveLower() {}
-    @FXML private void onRemoveGreaterKey() {}
-    @FXML private void onRemoveByMinutes() {}
+
+    @FXML
+    private void onDelete() {
+        HumanBeingFx selected = objectsTable.getSelectionModel().getSelectedItem();
+        if (selected == null) return;
+        if (!selected.getOwnerLogin().equals(Session.get().context().getLogin())) {
+            gui.util.Dialogs.info(window(), "dialog.confirm.title",
+                    LocaleManager.get().tr("edit.error.no_perm"));
+            return;
+        }
+        gui.util.Dialogs.confirm(window(), "dialog.confirm.delete", () ->
+                runCommand("remove_key", new String[]{ String.valueOf(selected.getKey()) }, null,
+                        response -> {
+                            if (response.isSuccess()) triggerImmediateSync();
+                            else gui.util.Dialogs.info(window(), "dialog.confirm.title",
+                                    response.getMessage());
+                        }));
+    }
+
+    @FXML
+    private void onClear() {
+        gui.util.Dialogs.confirm(window(), "dialog.confirm.clear", () ->
+                runCommand("clear", new String[0], null, response -> {
+                    triggerImmediateSync();
+                    gui.util.Dialogs.info(window(), "dialog.confirm.title", response.getMessage());
+                }));
+    }
+
+    @FXML
+    private void onInfo() {
+        runCommand("info", new String[0], null, response ->
+                gui.util.Dialogs.info(window(), "info.title", response.getMessage()));
+    }
+
+    @FXML
+    private void onHelp() {
+        runCommand("help", new String[0], null, response ->
+                gui.util.Dialogs.info(window(), "help.title", response.getMessage()));
+    }
+
+    @FXML
+    private void onHistory() {
+        runCommand("history", new String[0], null, response ->
+                gui.util.Dialogs.info(window(), "history.title", response.getMessage()));
+    }
+
+    @FXML
+    private void onScript() {
+        javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
+        chooser.setTitle(LocaleManager.get().tr("script.choose"));
+        java.io.File file = chooser.showOpenDialog(window());
+        if (file == null) return;
+
+        java.util.List<String> lines;
+        try {
+            lines = java.nio.file.Files.readAllLines(file.toPath());
+        } catch (java.io.IOException ex) {
+            gui.util.Dialogs.info(window(), "script.title", ex.getMessage());
+            return;
+        }
+        if (lines.isEmpty()) {
+            gui.util.Dialogs.info(window(), "script.title",
+                    LocaleManager.get().tr("script.empty"));
+            return;
+        }
+
+        Thread runner = new Thread(() -> {
+            StringBuilder log = new StringBuilder();
+            int executed = 0;
+            for (int i = 0; i < lines.size(); i++) {
+                String line = lines.get(i).trim();
+                if (line.isEmpty()) continue;
+                String[] parts = line.split("\\s+");
+                String cmd = parts[0];
+                String[] args = java.util.Arrays.copyOfRange(parts, 1, parts.length);
+                if (!isStatelessCommand(cmd)) {
+                    log.append(LocaleManager.get().tr("script.line", i + 1,
+                            "skip — " + cmd + " (требует объект)"))
+                       .append('\n');
+                    continue;
+                }
+                try {
+                    var ctx = Session.get().context();
+                    network.Request req = new network.Request(cmd, args, null,
+                            ctx.getLogin(), ctx.getPasswordHash());
+                    network.Response resp = Session.get().gateway().sendBlocking(req);
+                    log.append(LocaleManager.get().tr("script.line", i + 1, resp.getMessage()))
+                       .append('\n');
+                    executed++;
+                } catch (Exception ex) {
+                    log.append(LocaleManager.get().tr("script.line", i + 1, ex.getMessage()))
+                       .append('\n');
+                }
+            }
+            int finalExecuted = executed;
+            String message = LocaleManager.get().tr("script.executed", finalExecuted)
+                    + "\n\n" + log;
+            javafx.application.Platform.runLater(() -> {
+                triggerImmediateSync();
+                gui.util.Dialogs.info(window(), "script.title", message);
+            });
+        }, "script-runner");
+        runner.setDaemon(true);
+        runner.start();
+    }
+
+    private static boolean isStatelessCommand(String cmd) {
+        return java.util.Set.of(
+                "info", "help", "history", "show", "clear",
+                "remove_key", "remove_greater_key",
+                "remove_all_by_minutes_of_waiting",
+                "print_ascending", "print_field_ascending_impact_speed"
+        ).contains(cmd);
+    }
+
+    @FXML
+    private void onPrintAscending() {
+        runCommand("print_ascending", new String[0], null, response ->
+                gui.util.Dialogs.info(window(), "toolbar.print_ascending", response.getMessage()));
+    }
+
+    @FXML
+    private void onPrintFieldSpeed() {
+        runCommand("print_field_ascending_impact_speed", new String[0], null, response ->
+                gui.util.Dialogs.info(window(), "toolbar.print_field_speed", response.getMessage()));
+    }
+
+    @FXML
+    private void onRemoveLower() {
+        gui.util.Dialogs.prompt(window(), "toolbar.remove_lower", "field.name", value -> {
+            try {
+                elements.HumanBeing dummy = new elements.HumanBeing(
+                        value, new elements.Coordinates(0.0, 0), Boolean.TRUE,
+                        null, 0.0, "stub", 0, null, null);
+                runCommand("remove_lower", new String[0], dummy, response -> {
+                    triggerImmediateSync();
+                    gui.util.Dialogs.info(window(), "toolbar.remove_lower", response.getMessage());
+                });
+            } catch (Exception ex) {
+                gui.util.Dialogs.info(window(), "toolbar.remove_lower", ex.getMessage());
+            }
+        });
+    }
+
+    @FXML
+    private void onRemoveGreaterKey() {
+        gui.util.Dialogs.prompt(window(), "toolbar.remove_greater_key", "field.key", value -> {
+            try {
+                Long.parseLong(value);
+                runCommand("remove_greater_key", new String[]{ value }, null, response -> {
+                    triggerImmediateSync();
+                    gui.util.Dialogs.info(window(), "toolbar.remove_greater_key", response.getMessage());
+                });
+            } catch (NumberFormatException ex) {
+                gui.util.Dialogs.info(window(), "toolbar.remove_greater_key",
+                        LocaleManager.get().tr("edit.error.key"));
+            }
+        });
+    }
+
+    @FXML
+    private void onRemoveByMinutes() {
+        gui.util.Dialogs.prompt(window(), "toolbar.remove_by_minutes", "field.minutes", value -> {
+            try {
+                Integer.parseInt(value);
+                runCommand("remove_all_by_minutes_of_waiting", new String[]{ value }, null, response -> {
+                    triggerImmediateSync();
+                    gui.util.Dialogs.info(window(), "toolbar.remove_by_minutes", response.getMessage());
+                });
+            } catch (NumberFormatException ex) {
+                gui.util.Dialogs.info(window(), "toolbar.remove_by_minutes",
+                        LocaleManager.get().tr("edit.error.number"));
+            }
+        });
+    }
 }

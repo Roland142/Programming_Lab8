@@ -507,3 +507,20 @@
 .form-check-toothpick:selected .mark {
     -fx-background-color: #6e655a;
 }
+
+/* ===== Информационные диалоги ===== */
+.dialog-content {
+    -fx-text-fill: #1f1f1f;
+    -fx-font-size: 13px;
+    -fx-line-spacing: 4px;
+}
+
+.dialog-scroll {
+    -fx-background-color: #ebe2d1;
+    -fx-background: #ebe2d1;
+    -fx-padding: 0;
+}
+
+.dialog-scroll .viewport {
+    -fx-background-color: #ebe2d1;
+}
