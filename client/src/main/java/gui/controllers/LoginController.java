@@ -85,23 +85,7 @@ public class LoginController {
         clearError();
         loginButton.setDisable(true);
         registerButton.setDisable(true);
-        var task = loginService.login(login, password);
-        task.setOnSucceeded(e -> {
-            loginButton.setDisable(false);
-            registerButton.setDisable(false);
-            Response response = task.getValue();
-            if (response.isSuccess()) {
-                openMainWindow();
-            } else {
-                errorLabel.setText(localizedFromServer(response.getMessage(), "login.error.invalid"));
-            }
-        });
-        task.setOnFailed(e -> {
-            loginButton.setDisable(false);
-            registerButton.setDisable(false);
-            errorLabel.setText(LocaleManager.get().tr("login.error.server"));
-        });
-        new Thread(task, "login-task").start();
+        runAuthAttempt(loginService.login(login, password), "login.error.invalid", "login-task");
     }
 
     @FXML
@@ -115,23 +99,28 @@ public class LoginController {
         clearError();
         loginButton.setDisable(true);
         registerButton.setDisable(true);
-        var task = loginService.register(login, password);
-        task.setOnSucceeded(e -> {
+        runAuthAttempt(loginService.register(login, password), "login.error.taken", "register-task");
+    }
+
+    private void runAuthAttempt(LoginService.AuthAttempt attempt,
+                                String fallbackErrorKey, String threadName) {
+        attempt.task.setOnSucceeded(e -> {
             loginButton.setDisable(false);
             registerButton.setDisable(false);
-            Response response = task.getValue();
+            Response response = attempt.task.getValue();
             if (response.isSuccess()) {
+                Session.get().context().setCredentials(attempt.login, attempt.passwordHash);
                 openMainWindow();
             } else {
-                errorLabel.setText(localizedFromServer(response.getMessage(), "login.error.taken"));
+                errorLabel.setText(localizedFromServer(response.getMessage(), fallbackErrorKey));
             }
         });
-        task.setOnFailed(e -> {
+        attempt.task.setOnFailed(e -> {
             loginButton.setDisable(false);
             registerButton.setDisable(false);
             errorLabel.setText(LocaleManager.get().tr("login.error.server"));
         });
-        new Thread(task, "register-task").start();
+        new Thread(attempt.task, threadName).start();
     }
 
     private void clearError() {

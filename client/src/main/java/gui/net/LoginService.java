@@ -1,6 +1,5 @@
 package gui.net;
 
-import gui.Session;
 import javafx.concurrent.Task;
 import network.Request;
 import network.Response;
@@ -8,8 +7,10 @@ import utils.HashUtil;
 
 /**
  * Сценарии авторизации: login и register.
- * Возвращают {@link Task}, который выполняется в фоновом потоке;
- * результат — {@link Response} от сервера. Контроллер навешивает onSucceeded.
+ * Возвращают пару {@link AuthAttempt} (login + хеш пароля + Task с
+ * запросом). Запись credentials в {@link gui.Session} делает контроллер
+ * после успешного ответа сервера — это нужно, чтобы у Task оставался
+ * единственный setOnSucceeded на стороне контроллера.
  */
 public class LoginService {
 
@@ -19,27 +20,29 @@ public class LoginService {
         this.gateway = gateway;
     }
 
-    public Task<Response> login(String login, String password) {
+    public AuthAttempt login(String login, String password) {
         String hash = HashUtil.hash(password);
-        Request request = new Request("login", null, null, login, hash);
-        Task<Response> task = gateway.sendTask(request);
-        task.setOnSucceeded(e -> {
-            if (task.getValue().isSuccess()) {
-                Session.get().context().setCredentials(login, hash);
-            }
-        });
-        return task;
+        Task<Response> task = gateway.sendTask(
+                new Request("login", null, null, login, hash));
+        return new AuthAttempt(login, hash, task);
     }
 
-    public Task<Response> register(String login, String password) {
+    public AuthAttempt register(String login, String password) {
         String hash = HashUtil.hash(password);
-        Request request = new Request("register", null, null, login, hash);
-        Task<Response> task = gateway.sendTask(request);
-        task.setOnSucceeded(e -> {
-            if (task.getValue().isSuccess()) {
-                Session.get().context().setCredentials(login, hash);
-            }
-        });
-        return task;
+        Task<Response> task = gateway.sendTask(
+                new Request("register", null, null, login, hash));
+        return new AuthAttempt(login, hash, task);
+    }
+
+    public static final class AuthAttempt {
+        public final String login;
+        public final String passwordHash;
+        public final Task<Response> task;
+
+        AuthAttempt(String login, String passwordHash, Task<Response> task) {
+            this.login = login;
+            this.passwordHash = passwordHash;
+            this.task = task;
+        }
     }
 }
