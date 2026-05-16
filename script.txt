@@ -1,34 +1,43 @@
 info
-help
-show
-info
-help
-show
-info
-help
-show
-info
-help
-show
-info
-help
-show
-info
-help
-show
-info
-help
-show
-info
-help
-show
-info
-help
 show
 
-info
-help
+insert 202605160801
+Script Persist One
+101.5
+120
+true
+false
+35.5
+Script Theme One
+11
+CALM
+Script Car One
+
+insert 202605160802
+Script Persist Two
+-50.0
+80
+false
+-
+18.25
+Script Theme Two
+22
+APATHY
+-
+
+remove_lower
+!ScriptNoRemoveThreshold
+0
+0
+true
+-
+0
+Threshold Theme
+0
+-
+-
+
 show
-info
-help
-show
+print_ascending
+print_field_ascending_impact_speed
+history
