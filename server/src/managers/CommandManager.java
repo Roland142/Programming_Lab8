@@ -24,11 +24,15 @@ public class CommandManager {
             return new Response("Неизвестная команда: " + request.getCommandName(), false);
         }
         Response response = command.execute(request);
-        if (response.isSuccess()) {
+        if (response.isSuccess() && shouldRecord(request.getCommandName())) {
             if (lastCommands.size() >= 12) lastCommands.removeFirst();
             lastCommands.addLast(request.getCommandName());
         }
         return response;
+    }
+
+    private boolean shouldRecord(String commandName) {
+        return !"show".equals(commandName);
     }
 
     public HashMap<String, Command> getCommands() { return commands; }
