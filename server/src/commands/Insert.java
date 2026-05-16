@@ -11,6 +11,8 @@ import java.sql.SQLException;
 
 /** Команда insert {key} — добавляет новый элемент с заданным ключом. */
 public class Insert extends Command {
+    private static final String UNIQUE_VIOLATION_SQL_STATE = "23505";
+
     private final CollectionManager collectionManager;
     private final DatabaseManager db;
 
@@ -40,6 +42,9 @@ public class Insert extends Command {
         } catch (NumberFormatException e) {
             return new Response("Ошибка: ключ должен быть числом типа long", false);
         } catch (SQLException e) {
+            if (UNIQUE_VIOLATION_SQL_STATE.equals(e.getSQLState())) {
+                return new Response("Ошибка: объект с таким ключом уже существует. Выберите другой ключ.", false);
+            }
             return new Response("Ошибка БД: " + e.getMessage(), false);
         } catch (InvalidDataException e) {
             return new Response("Ошибка данных: " + e.getMessage(), false);
