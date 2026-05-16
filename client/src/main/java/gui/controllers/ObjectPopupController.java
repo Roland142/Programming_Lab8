@@ -7,6 +7,7 @@ import gui.model.HumanBeingFx;
 import gui.util.LocalizedFormatter;
 import gui.util.MoodColorMap;
 import gui.util.UserColorAssigner;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -121,8 +122,12 @@ public class ObjectPopupController {
 
     @FXML
     private void onEdit() {
-        if (onEdit != null && target != null) onEdit.accept(target);
+        HumanBeingFx selected = target;
+        Consumer<HumanBeingFx> editHandler = onEdit;
         if (stage != null) stage.close();
+        if (editHandler != null && selected != null) {
+            Platform.runLater(() -> editHandler.accept(selected));
+        }
     }
 
     /** Открывает popup рядом с указанной точкой экрана. */

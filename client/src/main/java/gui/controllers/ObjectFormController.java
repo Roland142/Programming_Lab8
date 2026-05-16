@@ -317,6 +317,12 @@ public class ObjectFormController {
             controller.setOnSaved(onSaved);
 
             stage.show();
+            stage.toFront();
+            stage.requestFocus();
+            javafx.application.Platform.runLater(() -> {
+                controller.nameField.requestFocus();
+                controller.nameField.positionCaret(controller.nameField.getText().length());
+            });
         } catch (IOException e) {
             throw new RuntimeException("Не удалось открыть диалог " + fxml, e);
         }
