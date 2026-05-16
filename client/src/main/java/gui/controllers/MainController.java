@@ -431,28 +431,35 @@ public class MainController {
         Thread runner = new Thread(() -> {
             StringBuilder log = new StringBuilder();
             int executed = 0;
-            for (int i = 0; i < lines.size(); i++) {
-                String line = lines.get(i).trim();
-                if (line.isEmpty()) continue;
+            ScriptCursor cursor = new ScriptCursor(lines);
+            while (cursor.hasNext()) {
+                String line = cursor.nextCommandLine();
+                if (line == null) break;
+                int lineNumber = cursor.lastLineNumber();
                 String[] parts = line.split("\\s+");
                 String cmd = parts[0];
                 String[] args = java.util.Arrays.copyOfRange(parts, 1, parts.length);
-                if (!isStatelessCommand(cmd)) {
-                    log.append(LocaleManager.get().tr("script.line", i + 1,
-                            "skip — " + cmd + " (требует объект)"))
-                       .append('\n');
-                    continue;
-                }
                 try {
+                    if ("exit".equals(cmd)) {
+                        log.append(LocaleManager.get().tr("script.line", lineNumber, "exit"))
+                           .append('\n');
+                        break;
+                    }
+                    if ("execute_script".equals(cmd)) {
+                        log.append(LocaleManager.get().tr("script.line", lineNumber,
+                                "skip — nested execute_script"))
+                           .append('\n');
+                        continue;
+                    }
                     var ctx = Session.get().context();
-                    network.Request req = new network.Request(cmd, args, null,
+                    network.Request req = buildScriptRequest(cmd, args, cursor,
                             ctx.getLogin(), ctx.getPasswordHash());
                     network.Response resp = Session.get().gateway().sendBlocking(req);
-                    log.append(LocaleManager.get().tr("script.line", i + 1, resp.getMessage()))
+                    log.append(LocaleManager.get().tr("script.line", lineNumber, resp.getMessage()))
                        .append('\n');
                     executed++;
                 } catch (Exception ex) {
-                    log.append(LocaleManager.get().tr("script.line", i + 1, ex.getMessage()))
+                    log.append(LocaleManager.get().tr("script.line", lineNumber, ex.getMessage()))
                        .append('\n');
                 }
             }
@@ -468,6 +475,68 @@ public class MainController {
         runner.start();
     }
 
+    private network.Request buildScriptRequest(String cmd, String[] args, ScriptCursor cursor,
+                                               String login, String passwordHash) {
+        if ("insert".equals(cmd) && args.length == 0) {
+            throw new IllegalArgumentException("insert requires key");
+        }
+        if ("update".equals(cmd) && args.length == 0) {
+            throw new IllegalArgumentException("update requires id");
+        }
+        elements.HumanBeing hb = switch (cmd) {
+            case "insert", "update", "remove_lower" -> readHumanBeingFromScript(cursor);
+            default -> null;
+        };
+        if (hb == null && !isStatelessCommand(cmd)) {
+            throw new IllegalArgumentException("unsupported command: " + cmd);
+        }
+        return new network.Request(cmd, args, hb, login, passwordHash);
+    }
+
+    private elements.HumanBeing readHumanBeingFromScript(ScriptCursor cursor) {
+        try {
+            String name = cursor.nextValue("name");
+            double x = Double.parseDouble(cursor.nextValue("x").replace(',', '.'));
+            int y = Integer.parseInt(cursor.nextValue("y"));
+            boolean realHero = parseBoolean(cursor.nextValue("realHero"));
+            Boolean hasToothpick = parseNullableBoolean(cursor.nextValue("hasToothpick"));
+            double impactSpeed = Double.parseDouble(cursor.nextValue("impactSpeed").replace(',', '.'));
+            String soundtrackName = cursor.nextValue("soundtrackName");
+            int minutesOfWaiting = Integer.parseInt(cursor.nextValue("minutesOfWaiting"));
+            elements.Mood mood = parseMood(cursor.nextValue("mood"));
+            String carName = cursor.nextValue("car");
+            elements.Car car = isNullToken(carName) ? null : new elements.Car(carName);
+            return new elements.HumanBeing(name, new elements.Coordinates(x, y), realHero,
+                    hasToothpick, impactSpeed, soundtrackName, minutesOfWaiting, mood, car);
+        } catch (exceptions.InvalidDataException e) {
+            throw new IllegalArgumentException(e.getMessage(), e);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("invalid number: " + e.getMessage(), e);
+        }
+    }
+
+    private static boolean parseBoolean(String value) {
+        if ("true".equalsIgnoreCase(value)) return true;
+        if ("false".equalsIgnoreCase(value)) return false;
+        throw new IllegalArgumentException("expected true or false, got: " + value);
+    }
+
+    private static Boolean parseNullableBoolean(String value) {
+        if (isNullToken(value)) return null;
+        return parseBoolean(value);
+    }
+
+    private static elements.Mood parseMood(String value) {
+        if (isNullToken(value)) return null;
+        return elements.Mood.valueOf(value.toUpperCase(java.util.Locale.ROOT));
+    }
+
+    private static boolean isNullToken(String value) {
+        return value == null || value.isBlank()
+                || "-".equals(value)
+                || "null".equalsIgnoreCase(value);
+    }
+
     private static boolean isStatelessCommand(String cmd) {
         return java.util.Set.of(
                 "info", "help", "history", "show", "clear",
@@ -476,6 +545,43 @@ public class MainController {
                 "print_ascending", "print_field_ascending_impact_speed"
         ).contains(cmd);
     }
+
+    private static final class ScriptCursor {
+        private final java.util.List<String> lines;
+        private int index;
+        private int lastLineNumber;
+
+        private ScriptCursor(java.util.List<String> lines) {
+            this.lines = lines;
+        }
+
+        private boolean hasNext() {
+            return index < lines.size();
+        }
+
+        private int lastLineNumber() {
+            return lastLineNumber;
+        }
+
+        private String nextCommandLine() {
+            while (index < lines.size()) {
+                String line = lines.get(index).trim();
+                lastLineNumber = index + 1;
+                index++;
+                if (!line.isEmpty()) return line;
+            }
+            return null;
+        }
+
+        private String nextValue(String fieldName) {
+            String value = nextCommandLine();
+            if (value == null) {
+                throw new IllegalArgumentException("missing field: " + fieldName);
+            }
+            return value;
+        }
+    }
+
 
     @FXML
     private void onPrintAscending() {
@@ -491,19 +597,7 @@ public class MainController {
 
     @FXML
     private void onRemoveLower() {
-        gui.util.Dialogs.prompt(window(), "toolbar.remove_lower", "field.name", value -> {
-            try {
-                elements.HumanBeing dummy = new elements.HumanBeing(
-                        value, new elements.Coordinates(0.0, 0), Boolean.TRUE,
-                        null, 0.0, "stub", 0, null, null);
-                runCommand("remove_lower", new String[0], dummy, response -> {
-                    triggerImmediateSync();
-                    gui.util.Dialogs.info(window(), "toolbar.remove_lower", response.getMessage());
-                });
-            } catch (Exception ex) {
-                gui.util.Dialogs.info(window(), "toolbar.remove_lower", ex.getMessage());
-            }
-        });
+        ObjectFormController.openRemoveLower(window(), this::triggerImmediateSync);
     }
 
     @FXML

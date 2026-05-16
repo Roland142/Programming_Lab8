@@ -29,13 +29,13 @@ import java.io.IOException;
 import java.util.Objects;
 
 /**
- * Контроллер диалога insert/edit. Один класс обслуживает оба FXML —
+ * Контроллер диалога insert/edit/remove_lower. Один класс обслуживает оба FXML —
  * insert-dialog.fxml содержит дополнительное поле "Ключ", в edit-dialog.fxml
  * это поле отсутствует (соответствующие @FXML-ссылки будут null).
  */
 public class ObjectFormController {
 
-    public enum Mode { INSERT, EDIT }
+    public enum Mode { INSERT, EDIT, REMOVE_LOWER }
 
     @FXML private Label titleLabel;
     @FXML private Button closeButton;
@@ -129,15 +129,21 @@ public class ObjectFormController {
         this.mode = mode;
         this.editingFx = fx;
 
-        if (mode == Mode.INSERT) {
-            Localizer.bind(titleLabel.textProperty(), "insert.title");
-            realHeroCheck.setSelected(true);
-            toothpickCombo.setValue(NullableBoolean.UNSPECIFIED);
-            moodCombo.setValue(null);
-        } else {
+        if (mode == Mode.EDIT) {
             Localizer.bind(titleLabel.textProperty(), "edit.title");
             populateFromFx(fx);
+            return;
         }
+
+        Localizer.bind(titleLabel.textProperty(),
+                mode == Mode.REMOVE_LOWER ? "remove_lower.title" : "insert.title");
+        if (mode == Mode.REMOVE_LOWER) {
+            saveButton.textProperty().unbind();
+            Localizer.bind(saveButton.textProperty(), "toolbar.remove_lower");
+        }
+        realHeroCheck.setSelected(true);
+        toothpickCombo.setValue(NullableBoolean.UNSPECIFIED);
+        moodCombo.setValue(null);
     }
 
     private void populateFromFx(HumanBeingFx fx) {
@@ -171,7 +177,7 @@ public class ObjectFormController {
         clearError();
         try {
             HumanBeing hb = buildHumanBeingFromFields();
-            Request request = (mode == Mode.INSERT) ? buildInsertRequest(hb) : buildUpdateRequest(hb);
+            Request request = buildRequest(hb);
             saveButton.setDisable(true);
             cancelButton.setDisable(true);
             var task = Session.get().gateway().sendTask(request);
@@ -260,6 +266,15 @@ public class ObjectFormController {
                 Session.get().context().getLogin(), Session.get().context().getPasswordHash());
     }
 
+    private Request buildRequest(HumanBeing hb) throws FieldValidationException {
+        return switch (mode) {
+            case INSERT -> buildInsertRequest(hb);
+            case EDIT -> buildUpdateRequest(hb);
+            case REMOVE_LOWER -> new Request("remove_lower", new String[0], hb,
+                    Session.get().context().getLogin(), Session.get().context().getPasswordHash());
+        };
+    }
+
     private Request buildUpdateRequest(HumanBeing hb) {
         return new Request("update", new String[]{ String.valueOf(editingFx.getId()) }, hb,
                 Session.get().context().getLogin(), Session.get().context().getPasswordHash());
@@ -273,6 +288,11 @@ public class ObjectFormController {
     /** Открывает edit-диалог как modal stage. */
     public static void openEdit(Window owner, HumanBeingFx fx, Runnable onSaved) {
         open(owner, "/fxml/edit-dialog.fxml", Mode.EDIT, fx, onSaved);
+    }
+
+    /** Открывает remove_lower-диалог с полноценным объектом сравнения. */
+    public static void openRemoveLower(Window owner, Runnable onSaved) {
+        open(owner, "/fxml/edit-dialog.fxml", Mode.REMOVE_LOWER, null, onSaved);
     }
 
     private static void open(Window owner, String fxml, Mode mode,
