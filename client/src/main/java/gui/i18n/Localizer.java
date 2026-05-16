@@ -7,9 +7,8 @@ import javafx.beans.property.StringProperty;
 import java.util.concurrent.Callable;
 
 /**
- * Утилита для биндинга строковых свойств UI к ключам ResourceBundle.
- * При смене {@link LocaleManager#localeProperty()} все привязанные подписи
- * автоматически пересчитываются.
+ * Утилита для биндинга строковых свойств UI к ключам ResourceBundle
+ * При смене LocaleManager.localeProperty() все привязанные подписи автоматически пересчитываются.
  */
 public final class Localizer {
 

@@ -23,9 +23,8 @@ import java.util.Date;
 import java.util.stream.Stream;
 
 /**
- * JavaFX-обёртка над {@link HumanBeing} для биндинга в TableView и канвасе.
- * Содержит все поля исходного объекта плюс key (TreeMap-ключ на сервере)
- * и ownerLogin (логин владельца).
+ * JavaFX-обёртка над HumanBeing для биндинга в TableView и канвасе
+ * Содержит все поля исходного объекта плюс key и ownerLogin
  */
 public class HumanBeingFx {
 
@@ -98,15 +97,17 @@ public class HumanBeingFx {
                 String.valueOf(id.get()),
                 String.valueOf(key.get()),
                 name.get(),
+                String.valueOf(creationDate.get()),
                 String.valueOf(x.get()),
                 String.valueOf(y.get()),
+                String.valueOf(realHero.get()),
+                String.valueOf(hasToothpick.get()),
                 String.valueOf(impactSpeed.get()),
                 String.valueOf(minutesOfWaiting.get()),
                 soundtrackName.get(),
                 mood.get() != null ? mood.get().name() : "",
                 carName.get() != null ? carName.get() : "",
-                ownerLogin.get(),
-                String.valueOf(realHero.get()))
+                ownerLogin.get())
                 .filter(s -> s != null)
                 .map(String::toLowerCase)
                 .anyMatch(s -> s.contains(needle));

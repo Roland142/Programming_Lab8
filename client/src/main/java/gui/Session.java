@@ -4,8 +4,7 @@ import command.SessionContext;
 import gui.net.GuiGateway;
 
 /**
- * Глобальное состояние GUI-приложения: учётные данные текущего пользователя
- * и единственный сетевой шлюз.
+ * Глобальное состояние GUI-приложения - учётные данные текущего пользователя и единственный сетевой шлюз
  */
 public final class Session {
 
@@ -27,7 +26,7 @@ public final class Session {
     public GuiGateway gateway() {
         return gateway;
     }
-
+    
     public boolean isAuthenticated() {
         return context.getLogin() != null && context.getPasswordHash() != null;
     }

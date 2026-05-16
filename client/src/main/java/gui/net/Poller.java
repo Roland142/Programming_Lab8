@@ -16,8 +16,8 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * Периодически опрашивает сервер командой {@code show} и синхронизирует
- * локальный {@link CollectionStore}. Используется ScheduledService —
+ * Периодически опрашивает сервер командой show и синхронизирует
+ * локальный CollectionStore. Используется ScheduledService —
  * экземпляр Task создаётся каждый тик заново (требование JavaFX).
  */
 public class Poller extends ScheduledService<List<HumanBeingEntry>> {

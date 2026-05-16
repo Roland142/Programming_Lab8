@@ -13,11 +13,10 @@ import java.util.Set;
 /**
  * Наблюдаемое локальное хранилище коллекции HumanBeing.
  * Хранит элементы в ObservableList (для TableView и канваса),
- * параллельно поддерживает Map по ключу для быстрого lookup.
+ * параллельно поддерживает Map по ключу для быстрого lookup
  *
- * При каждом poll-тике {@link #sync(List)} делает diff и обновляет
- * содержимое: добавляет новые, обновляет существующие через
- * {@link HumanBeingFx#applyFrom}, удаляет исчезнувшие.
+ * При каждом poll-тике sync(List) делает diff и обновляет
+ * содержимое: добавляет новые, обновляет существующие через HumanBeingFx.applyFrom, удаляет исчезнувшие
  */
 public class CollectionStore {
 

@@ -29,6 +29,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.Pane;
 
+import java.util.Date;
 import java.util.Locale;
 import java.util.function.Predicate;
 
@@ -57,10 +58,16 @@ public class MainController {
     @FXML private TableColumn<HumanBeingFx, Number> idCol;
     @FXML private TableColumn<HumanBeingFx, Number> keyCol;
     @FXML private TableColumn<HumanBeingFx, String> nameCol;
+    @FXML private TableColumn<HumanBeingFx, Date> creationDateCol;
     @FXML private TableColumn<HumanBeingFx, Number> xCol;
     @FXML private TableColumn<HumanBeingFx, Number> yCol;
+    @FXML private TableColumn<HumanBeingFx, Boolean> realHeroCol;
+    @FXML private TableColumn<HumanBeingFx, Boolean> hasToothpickCol;
     @FXML private TableColumn<HumanBeingFx, Number> speedCol;
+    @FXML private TableColumn<HumanBeingFx, String> soundtrackCol;
+    @FXML private TableColumn<HumanBeingFx, Number> minutesCol;
     @FXML private TableColumn<HumanBeingFx, Mood> moodCol;
+    @FXML private TableColumn<HumanBeingFx, String> carCol;
     @FXML private TableColumn<HumanBeingFx, String> ownerCol;
     @FXML private SplitPane splitPane;
 
@@ -192,10 +199,16 @@ public class MainController {
         Localizer.bind(idCol.textProperty(), "table.id");
         Localizer.bind(keyCol.textProperty(), "table.key");
         Localizer.bind(nameCol.textProperty(), "table.name");
+        Localizer.bind(creationDateCol.textProperty(), "table.creationDate");
         Localizer.bind(xCol.textProperty(), "table.x");
         Localizer.bind(yCol.textProperty(), "table.y");
+        Localizer.bind(realHeroCol.textProperty(), "table.realHero");
+        Localizer.bind(hasToothpickCol.textProperty(), "table.hasToothpick");
         Localizer.bind(speedCol.textProperty(), "table.speed");
+        Localizer.bind(soundtrackCol.textProperty(), "table.soundtrack");
+        Localizer.bind(minutesCol.textProperty(), "table.minutes");
         Localizer.bind(moodCol.textProperty(), "table.mood");
+        Localizer.bind(carCol.textProperty(), "table.car");
         Localizer.bind(ownerCol.textProperty(), "table.owner");
     }
 
@@ -237,10 +250,16 @@ public class MainController {
         idCol.setCellValueFactory(new PropertyValueFactory<>("id"));
         keyCol.setCellValueFactory(new PropertyValueFactory<>("key"));
         nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
+        creationDateCol.setCellValueFactory(new PropertyValueFactory<>("creationDate"));
         xCol.setCellValueFactory(new PropertyValueFactory<>("x"));
         yCol.setCellValueFactory(new PropertyValueFactory<>("y"));
+        realHeroCol.setCellValueFactory(new PropertyValueFactory<>("realHero"));
+        hasToothpickCol.setCellValueFactory(new PropertyValueFactory<>("hasToothpick"));
         speedCol.setCellValueFactory(new PropertyValueFactory<>("impactSpeed"));
+        soundtrackCol.setCellValueFactory(new PropertyValueFactory<>("soundtrackName"));
+        minutesCol.setCellValueFactory(new PropertyValueFactory<>("minutesOfWaiting"));
         moodCol.setCellValueFactory(new PropertyValueFactory<>("mood"));
+        carCol.setCellValueFactory(new PropertyValueFactory<>("carName"));
         ownerCol.setCellValueFactory(new PropertyValueFactory<>("ownerLogin"));
 
         xCol.setCellFactory(col -> numericCell(v -> LocalizedFormatter.formatDouble(v.doubleValue())));
@@ -248,6 +267,10 @@ public class MainController {
         speedCol.setCellFactory(col -> numericCell(v -> LocalizedFormatter.formatDouble(v.doubleValue())));
         idCol.setCellFactory(col -> numericCell(v -> LocalizedFormatter.formatLong(v.longValue())));
         keyCol.setCellFactory(col -> numericCell(v -> LocalizedFormatter.formatLong(v.longValue())));
+        minutesCol.setCellFactory(col -> numericCell(v -> LocalizedFormatter.formatInteger(v.intValue())));
+        creationDateCol.setCellFactory(col -> dateCell());
+        realHeroCol.setCellFactory(col -> booleanCell(false));
+        hasToothpickCol.setCellFactory(col -> booleanCell(true));
 
         // Цветной cellFactory для moodCol и ownerCol устанавливается в configureCanvas.
     }
@@ -259,6 +282,34 @@ public class MainController {
             protected void updateItem(Number item, boolean empty) {
                 super.updateItem(item, empty);
                 setText(empty || item == null ? null : formatter.apply(item));
+            }
+        };
+    }
+
+    private javafx.scene.control.TableCell<HumanBeingFx, Date> dateCell() {
+        return new javafx.scene.control.TableCell<>() {
+            @Override
+            protected void updateItem(Date item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : LocalizedFormatter.formatDate(item));
+            }
+        };
+    }
+
+    private javafx.scene.control.TableCell<HumanBeingFx, Boolean> booleanCell(boolean nullable) {
+        return new javafx.scene.control.TableCell<>() {
+            @Override
+            protected void updateItem(Boolean item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setText(null);
+                    return;
+                }
+                if (item == null) {
+                    setText(nullable ? LocaleManager.get().tr("popup.dash") : null);
+                    return;
+                }
+                setText(LocaleManager.get().tr(item ? "popup.yes" : "popup.no"));
             }
         };
     }

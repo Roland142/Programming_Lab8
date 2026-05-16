@@ -10,9 +10,9 @@ import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
 /**
- * Синглтон, хранящий выбранную пользователем локаль.
- * Все элементы UI получают локализованные строки через {@link Localizer},
- * который пересчитывает свои биндинги при изменении {@link #localeProperty()}.
+ * Синглтон, хранящий выбранную пользователем локализацию.
+ * Все элементы UI получают локализованные строки через Localizer,
+ * который пересчитывает свои биндинги при изменении localeProperty().
  */
 public final class LocaleManager {
 
@@ -48,7 +48,7 @@ public final class LocaleManager {
         locale.set(value);
     }
 
-    /** Возвращает строку текущей локали по ключу. */
+    /** Возвращает строку текущей локализации по ключу */
     public String tr(String key) {
         return tr(key, getLocale());
     }
@@ -61,14 +61,14 @@ public final class LocaleManager {
         }
     }
 
-    /** Возвращает строку с подстановкой аргументов через {@link MessageFormat}. */
+    /** Возвращает строку с подстановкой аргументов через MessageFormat */
     public String tr(String key, Object... args) {
         String pattern = tr(key);
         if (args == null || args.length == 0) return pattern;
         return new MessageFormat(pattern, getLocale()).format(args);
     }
 
-    /** Имя локали для отображения в UI (берётся из ключей locale.* текущего бандла). */
+    /** Имя локализации для отображения в UI (берётся из ключей locale.* текущего бандла) */
     public String displayName(Locale forLocale) {
         String tag = forLocale.equals(ES_NI) ? "es_NI" : forLocale.getLanguage();
         return tr("locale." + tag);

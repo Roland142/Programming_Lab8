@@ -12,8 +12,8 @@ import java.util.Date;
 import java.util.Locale;
 
 /**
- * Форматирование чисел и дат согласно текущей локали.
- * Все методы читают активную локаль из {@link LocaleManager}, поэтому при
+ * Форматирование чисел и дат согласно текущей локализации.
+ * Все методы читают активную локализацию из LocaleManager, поэтому при
  * пересчёте StringBinding (Localizer) числа/даты обновятся вместе с подписями.
  */
 public final class LocalizedFormatter {
