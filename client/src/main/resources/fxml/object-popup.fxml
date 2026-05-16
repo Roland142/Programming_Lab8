@@ -36,6 +36,20 @@
 
         <HBox styleClass="popup-row" alignment="CENTER_LEFT">
             <padding><Insets top="8" bottom="8"/></padding>
+            <Label fx:id="keyCaption" styleClass="popup-caption" prefWidth="160"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="keyValue" styleClass="popup-value"/>
+        </HBox>
+
+        <HBox styleClass="popup-row" alignment="CENTER_LEFT">
+            <padding><Insets top="8" bottom="8"/></padding>
+            <Label fx:id="creationDateCaption" styleClass="popup-caption" prefWidth="160"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="creationDateValue" styleClass="popup-value"/>
+        </HBox>
+
+        <HBox styleClass="popup-row" alignment="CENTER_LEFT">
+            <padding><Insets top="8" bottom="8"/></padding>
             <Label fx:id="coordsCaption" styleClass="popup-caption" prefWidth="160"/>
             <Region HBox.hgrow="ALWAYS"/>
             <Label fx:id="coordsValue" styleClass="popup-value"/>
@@ -46,6 +60,20 @@
             <Label fx:id="speedCaption" styleClass="popup-caption" prefWidth="160"/>
             <Region HBox.hgrow="ALWAYS"/>
             <Label fx:id="speedValue" styleClass="popup-value"/>
+        </HBox>
+
+        <HBox styleClass="popup-row" alignment="CENTER_LEFT">
+            <padding><Insets top="8" bottom="8"/></padding>
+            <Label fx:id="soundtrackCaption" styleClass="popup-caption" prefWidth="160"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="soundtrackValue" styleClass="popup-value"/>
+        </HBox>
+
+        <HBox styleClass="popup-row" alignment="CENTER_LEFT">
+            <padding><Insets top="8" bottom="8"/></padding>
+            <Label fx:id="minutesCaption" styleClass="popup-caption" prefWidth="160"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="minutesValue" styleClass="popup-value"/>
         </HBox>
 
         <HBox styleClass="popup-row" alignment="CENTER_LEFT">
@@ -67,6 +95,13 @@
             <Label fx:id="heroCaption" styleClass="popup-caption" prefWidth="160"/>
             <Region HBox.hgrow="ALWAYS"/>
             <Label fx:id="heroValue" styleClass="popup-value"/>
+        </HBox>
+
+        <HBox styleClass="popup-row" alignment="CENTER_LEFT">
+            <padding><Insets top="8" bottom="8"/></padding>
+            <Label fx:id="toothpickCaption" styleClass="popup-caption" prefWidth="160"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="toothpickValue" styleClass="popup-value"/>
         </HBox>
     </VBox>
 
