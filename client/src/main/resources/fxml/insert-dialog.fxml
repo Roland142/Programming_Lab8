@@ -80,7 +80,10 @@
 
         <HBox spacing="20" alignment="CENTER_LEFT">
             <CheckBox fx:id="realHeroCheck" styleClass="form-check-real-hero"/>
-            <CheckBox fx:id="toothpickCheck" styleClass="form-check-toothpick"/>
+            <VBox HBox.hgrow="ALWAYS" spacing="6">
+                <Label fx:id="toothpickLabel" styleClass="field-label"/>
+                <ComboBox fx:id="toothpickCombo" styleClass="form-combo" maxWidth="Infinity"/>
+            </VBox>
         </HBox>
 
         <HBox fx:id="errorBox" styleClass="error-box" alignment="CENTER_LEFT" visible="false" managed="false">

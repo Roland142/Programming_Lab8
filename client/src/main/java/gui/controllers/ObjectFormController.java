@@ -56,7 +56,8 @@ public class ObjectFormController {
     @FXML private Label carLabel;
     @FXML private TextField carField;
     @FXML private CheckBox realHeroCheck;
-    @FXML private CheckBox toothpickCheck;
+    @FXML private Label toothpickLabel;
+    @FXML private ComboBox<NullableBoolean> toothpickCombo;
     @FXML private Label keyLabel;       // только для insert
     @FXML private TextField keyField;   // только для insert
     @FXML private Button cancelButton;
@@ -80,7 +81,7 @@ public class ObjectFormController {
         Localizer.bind(moodLabel.textProperty(), "field.mood");
         Localizer.bind(carLabel.textProperty(), "field.car");
         Localizer.bind(realHeroCheck.textProperty(), "field.realHero");
-        Localizer.bind(toothpickCheck.textProperty(), "field.toothpick");
+        Localizer.bind(toothpickLabel.textProperty(), "field.toothpick");
         Localizer.bind(cancelButton.textProperty(), "edit.cancel");
         Localizer.bind(saveButton.textProperty(), "edit.save");
 
@@ -92,6 +93,11 @@ public class ObjectFormController {
         moodCombo.getItems().addAll(Mood.values());
         moodCombo.setCellFactory(lv -> moodListCell());
         moodCombo.setButtonCell(moodListCell());
+
+        toothpickCombo.getItems().setAll(NullableBoolean.values());
+        toothpickCombo.setCellFactory(lv -> nullableBooleanListCell());
+        toothpickCombo.setButtonCell(nullableBooleanListCell());
+        toothpickCombo.setValue(NullableBoolean.UNSPECIFIED);
 
         errorBox.visibleProperty().bind(errorLabel.textProperty().isNotEmpty());
         errorBox.managedProperty().bind(errorBox.visibleProperty());
@@ -109,6 +115,16 @@ public class ObjectFormController {
         };
     }
 
+    private ListCell<NullableBoolean> nullableBooleanListCell() {
+        return new ListCell<>() {
+            @Override
+            protected void updateItem(NullableBoolean item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : LocaleManager.get().tr(item.key));
+            }
+        };
+    }
+
     public void configure(Mode mode, HumanBeingFx fx) {
         this.mode = mode;
         this.editingFx = fx;
@@ -116,7 +132,7 @@ public class ObjectFormController {
         if (mode == Mode.INSERT) {
             Localizer.bind(titleLabel.textProperty(), "insert.title");
             realHeroCheck.setSelected(true);
-            toothpickCheck.setSelected(false);
+            toothpickCombo.setValue(NullableBoolean.UNSPECIFIED);
             moodCombo.setValue(null);
         } else {
             Localizer.bind(titleLabel.textProperty(), "edit.title");
@@ -134,7 +150,7 @@ public class ObjectFormController {
         moodCombo.setValue(fx.getMood());
         carField.setText(fx.getCarName() != null ? fx.getCarName() : "");
         realHeroCheck.setSelected(fx.isRealHero());
-        toothpickCheck.setSelected(Boolean.TRUE.equals(fx.getHasToothpick()));
+        toothpickCombo.setValue(NullableBoolean.from(fx.getHasToothpick()));
     }
 
     public void setStage(Stage stage) {
@@ -207,6 +223,7 @@ public class ObjectFormController {
         if (x <= -975) throw new FieldValidationException("edit.error.x");
 
         Mood mood = moodCombo.getValue();
+        NullableBoolean toothpick = toothpickCombo.getValue();
         String carName = carField.getText() == null ? "" : carField.getText().trim();
         elements.Car car = carName.isEmpty() ? null : new elements.Car(carName);
 
@@ -215,7 +232,7 @@ public class ObjectFormController {
                     name,
                     new elements.Coordinates(x, y),
                     realHeroCheck.isSelected(),
-                    toothpickCheck.isSelected() ? Boolean.TRUE : null,
+                    toothpick == null ? null : toothpick.value,
                     speed,
                     soundtrack,
                     minutes,
@@ -296,6 +313,25 @@ public class ObjectFormController {
         @Override
         public String getLocalizedMessage() {
             return isKey ? LocaleManager.get().tr(getMessage()) : getMessage();
+        }
+    }
+
+    private enum NullableBoolean {
+        YES(Boolean.TRUE, "popup.yes"),
+        NO(Boolean.FALSE, "popup.no"),
+        UNSPECIFIED(null, "popup.dash");
+
+        private final Boolean value;
+        private final String key;
+
+        NullableBoolean(Boolean value, String key) {
+            this.value = value;
+            this.key = key;
+        }
+
+        private static NullableBoolean from(Boolean value) {
+            if (value == null) return UNSPECIFIED;
+            return value ? YES : NO;
         }
     }
 }

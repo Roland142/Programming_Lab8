@@ -509,15 +509,6 @@
     -fx-border-color: #c8593a;
 }
 
-.form-check-toothpick:selected .box {
-    -fx-background-color: #ebe2d1;
-    -fx-border-color: #d8cdb6;
-}
-
-.form-check-toothpick:selected .mark {
-    -fx-background-color: #6e655a;
-}
-
 /* ===== Информационные диалоги ===== */
 .dialog-content {
     -fx-text-fill: #1f1f1f;
