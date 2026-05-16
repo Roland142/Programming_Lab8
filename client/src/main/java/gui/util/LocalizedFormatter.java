@@ -38,7 +38,7 @@ public final class LocalizedFormatter {
 
     public static String formatDate(Date date) {
         if (date == null) return "";
-        LocalDate ld = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate ld = toLocalDate(date);
         return DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)
                 .withLocale(active())
                 .format(ld);
@@ -46,10 +46,18 @@ public final class LocalizedFormatter {
 
     public static String formatDateTime(Date date) {
         if (date == null) return "";
+        if (date instanceof java.sql.Date) return formatDate(date);
         LocalDateTime ldt = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
         return DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
                 .withLocale(active())
                 .format(ldt);
+    }
+
+    private static LocalDate toLocalDate(Date date) {
+        if (date instanceof java.sql.Date sqlDate) {
+            return sqlDate.toLocalDate();
+        }
+        return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
     }
 
     public static String formatCoordinates(double x, int y) {

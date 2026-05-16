@@ -62,7 +62,7 @@
     </HBox>
 
     <!-- Main content -->
-    <SplitPane fx:id="splitPane" VBox.vgrow="ALWAYS" dividerPositions="0.5">
+    <SplitPane fx:id="splitPane" VBox.vgrow="ALWAYS" dividerPositions="0.64">
         <items>
             <VBox styleClass="left-pane">
                 <HBox styleClass="filter-bar" alignment="CENTER_LEFT" spacing="8">
@@ -72,20 +72,20 @@
                 </HBox>
                 <TableView fx:id="objectsTable" VBox.vgrow="ALWAYS" styleClass="objects-table">
                     <columns>
-                        <TableColumn fx:id="idCol"     prefWidth="60"  styleClass="col-id"/>
-                        <TableColumn fx:id="keyCol"    prefWidth="60"  styleClass="col-key"/>
-                        <TableColumn fx:id="nameCol"   prefWidth="160" styleClass="col-name"/>
-                        <TableColumn fx:id="creationDateCol" prefWidth="120" styleClass="col-date"/>
-                        <TableColumn fx:id="xCol"      prefWidth="60"  styleClass="col-num"/>
-                        <TableColumn fx:id="yCol"      prefWidth="60"  styleClass="col-num"/>
-                        <TableColumn fx:id="realHeroCol" prefWidth="110" styleClass="col-bool"/>
-                        <TableColumn fx:id="hasToothpickCol" prefWidth="120" styleClass="col-bool"/>
-                        <TableColumn fx:id="speedCol"  prefWidth="80"  styleClass="col-num"/>
-                        <TableColumn fx:id="soundtrackCol" prefWidth="160" styleClass="col-text"/>
-                        <TableColumn fx:id="minutesCol" prefWidth="120" styleClass="col-num"/>
-                        <TableColumn fx:id="moodCol"   prefWidth="120" styleClass="col-mood"/>
-                        <TableColumn fx:id="carCol" prefWidth="120" styleClass="col-text"/>
-                        <TableColumn fx:id="ownerCol"  prefWidth="100" styleClass="col-owner"/>
+                        <TableColumn fx:id="idCol" prefWidth="46" styleClass="col-id"/>
+                        <TableColumn fx:id="keyCol" prefWidth="56" styleClass="col-key"/>
+                        <TableColumn fx:id="nameCol" prefWidth="110" styleClass="col-name"/>
+                        <TableColumn fx:id="creationDateCol" prefWidth="104" styleClass="col-date"/>
+                        <TableColumn fx:id="xCol" prefWidth="46" styleClass="col-num"/>
+                        <TableColumn fx:id="yCol" prefWidth="46" styleClass="col-num"/>
+                        <TableColumn fx:id="realHeroCol" prefWidth="96" styleClass="col-bool"/>
+                        <TableColumn fx:id="hasToothpickCol" prefWidth="96" styleClass="col-bool"/>
+                        <TableColumn fx:id="speedCol" prefWidth="72" styleClass="col-num"/>
+                        <TableColumn fx:id="soundtrackCol" prefWidth="130" styleClass="col-text"/>
+                        <TableColumn fx:id="minutesCol" prefWidth="96" styleClass="col-num"/>
+                        <TableColumn fx:id="moodCol" prefWidth="96" styleClass="col-mood"/>
+                        <TableColumn fx:id="carCol" prefWidth="90" styleClass="col-text"/>
+                        <TableColumn fx:id="ownerCol" prefWidth="88" styleClass="col-owner"/>
                     </columns>
                 </TableView>
             </VBox>
