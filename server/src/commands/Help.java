@@ -21,7 +21,6 @@ public class Help extends Command {
                 "remove_key {key} : удалить элемент по ключу\n" +
                 "clear : удалить все свои элементы\n" +
                 "execute_script {file_name} : исполнить скрипт из файла\n" +
-                "exit : завершить клиентское приложение\n" +
                 "remove_lower : удалить все свои элементы, меньшие заданного\n" +
                 "history : вывести последние 12 команд\n" +
                 "remove_greater_key {key} : удалить свои элементы с ключом больше заданного\n" +
