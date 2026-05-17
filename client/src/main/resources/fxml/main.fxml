@@ -69,6 +69,7 @@
                     <padding><Insets top="10" right="16" bottom="10" left="16"/></padding>
                     <Label text="🔍" styleClass="filter-icon"/>
                     <TextField fx:id="filterField" styleClass="filter-field" HBox.hgrow="ALWAYS"/>
+                    <ComboBox fx:id="filterColumnBox" styleClass="filter-column-box" prefWidth="180"/>
                 </HBox>
                 <TableView fx:id="objectsTable" VBox.vgrow="ALWAYS" styleClass="objects-table">
                     <columns>

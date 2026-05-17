@@ -260,6 +260,24 @@
     -fx-border-color: transparent;
 }
 
+.filter-column-box {
+    -fx-background-color: #f4ede0;
+    -fx-background-radius: 2;
+    -fx-border-color: #d8cdb6;
+    -fx-border-radius: 2;
+    -fx-padding: 2 6 2 8;
+    -fx-font-size: 12px;
+    -fx-text-fill: #1f1f1f;
+}
+
+.filter-column-box .arrow-button {
+    -fx-background-color: transparent;
+}
+
+.filter-column-box .arrow {
+    -fx-background-color: #6e655a;
+}
+
 /* ===== Таблица ===== */
 .objects-table {
     -fx-background-color: #f4ede0;

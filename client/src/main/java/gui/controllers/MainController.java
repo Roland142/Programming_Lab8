@@ -65,6 +65,7 @@ public class MainController {
     @FXML private MenuItem removeByMinutesItem;
 
     @FXML private TextField filterField;
+    @FXML private ComboBox<FilterColumn> filterColumnBox;
     @FXML private TableView<HumanBeingFx> objectsTable;
     @FXML private TableColumn<HumanBeingFx, Number> idCol;
     @FXML private TableColumn<HumanBeingFx, Number> keyCol;
@@ -105,7 +106,10 @@ public class MainController {
 
         // Кастомные cellFactory не пересоздаются при смене локали — заставим таблицу
         // перерисовать ячейки, чтобы локализованные mood и числа обновились.
-        LocaleManager.get().localeProperty().addListener((obs, prev, value) -> objectsTable.refresh());
+        LocaleManager.get().localeProperty().addListener((obs, prev, value) -> {
+            refreshVisibleItems();
+            objectsTable.refresh();
+        });
 
         App.onClose(this::shutdown);
         poller.start();
@@ -328,6 +332,7 @@ public class MainController {
     }
 
     private void configureFilterAndSort() {
+        configureFilterColumnBox();
         objectsTable.setItems(visibleItems);
         objectsTable.setSortPolicy(table -> {
             refreshVisibleItems();
@@ -335,6 +340,7 @@ public class MainController {
         });
 
         filterField.textProperty().addListener((obs, prev, value) -> refreshVisibleItems());
+        filterColumnBox.valueProperty().addListener((obs, prev, value) -> refreshVisibleItems());
         store.items().addListener((ListChangeListener<HumanBeingFx>) change -> {
             while (change.next()) {
                 change.getRemoved().forEach(this::unregisterItemRefresh);
@@ -346,8 +352,27 @@ public class MainController {
         refreshVisibleItems();
     }
 
+    private void configureFilterColumnBox() {
+        filterColumnBox.getItems().setAll(FilterColumn.values());
+        filterColumnBox.promptTextProperty().bind(Localizer.binding("filter.column.all"));
+        filterColumnBox.setCellFactory(list -> filterColumnCell());
+        filterColumnBox.setButtonCell(filterColumnCell());
+        LocaleManager.get().localeProperty().addListener((obs, prev, value) ->
+                filterColumnBox.setButtonCell(filterColumnCell()));
+    }
+
+    private ListCell<FilterColumn> filterColumnCell() {
+        return new ListCell<>() {
+            @Override
+            protected void updateItem(FilterColumn item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : LocaleManager.get().tr(item.labelKey));
+            }
+        };
+    }
+
     private void refreshVisibleItems() {
-        Predicate<HumanBeingFx> filter = buildFilter(filterField.getText());
+        Predicate<HumanBeingFx> filter = buildFilter(filterField.getText(), filterColumnBox.getValue());
         Comparator<HumanBeingFx> comparator = objectsTable.getComparator();
 
         var stream = store.items().stream().filter(filter);
@@ -388,9 +413,66 @@ public class MainController {
                 fx.ownerLoginProperty());
     }
 
-    /** Предикат фильтрации, построенный через Streams API внутри HumanBeingFx.matchesFilter. */
-    private Predicate<HumanBeingFx> buildFilter(String text) {
-        return fx -> fx.matchesFilter(text);
+    /** Предикат фильтрации применяется в Stream API внутри refreshVisibleItems. */
+    private Predicate<HumanBeingFx> buildFilter(String text, FilterColumn column) {
+        if (column == null || column == FilterColumn.ALL) {
+            return fx -> fx.matchesFilter(text);
+        }
+        return fx -> matchesColumn(fx, column, text);
+    }
+
+    private boolean matchesColumn(HumanBeingFx fx, FilterColumn column, String text) {
+        if (text == null || text.isBlank()) return true;
+        String value = valueForColumn(fx, column);
+        return value != null && value.toLowerCase(Locale.ROOT).contains(text.toLowerCase(Locale.ROOT).trim());
+    }
+
+    private String valueForColumn(HumanBeingFx fx, FilterColumn column) {
+        return switch (column) {
+            case ID -> LocalizedFormatter.formatLong(fx.getId());
+            case KEY -> LocalizedFormatter.formatLong(fx.getKey());
+            case NAME -> fx.getName();
+            case CREATION_DATE -> LocalizedFormatter.formatDate(fx.getCreationDate());
+            case X -> LocalizedFormatter.formatDouble(fx.getX());
+            case Y -> LocalizedFormatter.formatInteger(fx.getY());
+            case REAL_HERO -> LocaleManager.get().tr(fx.isRealHero() ? "popup.yes" : "popup.no");
+            case HAS_TOOTHPICK -> fx.getHasToothpick() == null
+                    ? LocaleManager.get().tr("popup.dash")
+                    : LocaleManager.get().tr(fx.getHasToothpick() ? "popup.yes" : "popup.no");
+            case SPEED -> LocalizedFormatter.formatDouble(fx.getImpactSpeed());
+            case SOUNDTRACK -> fx.getSoundtrackName();
+            case MINUTES -> LocalizedFormatter.formatInteger(fx.getMinutesOfWaiting());
+            case MOOD -> fx.getMood() == null
+                    ? LocaleManager.get().tr("popup.dash")
+                    : LocaleManager.get().tr("mood." + fx.getMood().name());
+            case CAR -> fx.getCarName();
+            case OWNER -> fx.getOwnerLogin();
+            case ALL -> "";
+        };
+    }
+
+    private enum FilterColumn {
+        ALL("filter.column.all"),
+        ID("table.id"),
+        KEY("table.key"),
+        NAME("table.name"),
+        CREATION_DATE("table.creationDate"),
+        X("table.x"),
+        Y("table.y"),
+        REAL_HERO("table.realHero"),
+        HAS_TOOTHPICK("table.hasToothpick"),
+        SPEED("table.speed"),
+        SOUNDTRACK("table.soundtrack"),
+        MINUTES("table.minutes"),
+        MOOD("table.mood"),
+        CAR("table.car"),
+        OWNER("table.owner");
+
+        private final String labelKey;
+
+        FilterColumn(String labelKey) {
+            this.labelKey = labelKey;
+        }
     }
 
     private void configureStatusBar() {
