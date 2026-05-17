@@ -11,10 +11,13 @@ import gui.net.Poller;
 import gui.util.LocalizedFormatter;
 import gui.util.UserColorAssigner;
 import gui.view.CollectionCanvas;
+import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.IntegerBinding;
-import javafx.collections.transformation.FilteredList;
-import javafx.collections.transformation.SortedList;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -32,9 +35,12 @@ import network.CollectionInfo;
 import network.CommandInfo;
 import network.Response;
 
+import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -82,6 +88,8 @@ public class MainController {
     @FXML private Label statusLabel;
 
     private final CollectionStore store = new CollectionStore();
+    private final ObservableList<HumanBeingFx> visibleItems = FXCollections.observableArrayList();
+    private final Map<HumanBeingFx, InvalidationListener> itemRefreshListeners = new HashMap<>();
     private final Poller poller = new Poller(store);
     private CollectionCanvas collectionCanvas;
 
@@ -320,12 +328,64 @@ public class MainController {
     }
 
     private void configureFilterAndSort() {
-        FilteredList<HumanBeingFx> filtered = new FilteredList<>(store.items(), x -> true);
-        filterField.textProperty().addListener((obs, prev, value) -> filtered.setPredicate(buildFilter(value)));
+        objectsTable.setItems(visibleItems);
+        objectsTable.setSortPolicy(table -> {
+            refreshVisibleItems();
+            return true;
+        });
 
-        SortedList<HumanBeingFx> sorted = new SortedList<>(filtered);
-        sorted.comparatorProperty().bind(objectsTable.comparatorProperty());
-        objectsTable.setItems(sorted);
+        filterField.textProperty().addListener((obs, prev, value) -> refreshVisibleItems());
+        store.items().addListener((ListChangeListener<HumanBeingFx>) change -> {
+            while (change.next()) {
+                change.getRemoved().forEach(this::unregisterItemRefresh);
+                change.getAddedSubList().forEach(this::registerItemRefresh);
+            }
+            refreshVisibleItems();
+        });
+        store.items().forEach(this::registerItemRefresh);
+        refreshVisibleItems();
+    }
+
+    private void refreshVisibleItems() {
+        Predicate<HumanBeingFx> filter = buildFilter(filterField.getText());
+        Comparator<HumanBeingFx> comparator = objectsTable.getComparator();
+
+        var stream = store.items().stream().filter(filter);
+        if (comparator != null) {
+            stream = stream.sorted(comparator);
+        }
+        visibleItems.setAll(stream.collect(Collectors.toList()));
+    }
+
+    private void registerItemRefresh(HumanBeingFx fx) {
+        if (itemRefreshListeners.containsKey(fx)) return;
+        InvalidationListener listener = ignored -> refreshVisibleItems();
+        itemRefreshListeners.put(fx, listener);
+        itemProperties(fx).forEach(property -> property.addListener(listener));
+    }
+
+    private void unregisterItemRefresh(HumanBeingFx fx) {
+        InvalidationListener listener = itemRefreshListeners.remove(fx);
+        if (listener == null) return;
+        itemProperties(fx).forEach(property -> property.removeListener(listener));
+    }
+
+    private List<ObservableValue<?>> itemProperties(HumanBeingFx fx) {
+        return List.of(
+                fx.idProperty(),
+                fx.keyProperty(),
+                fx.nameProperty(),
+                fx.creationDateProperty(),
+                fx.xProperty(),
+                fx.yProperty(),
+                fx.realHeroProperty(),
+                fx.hasToothpickProperty(),
+                fx.impactSpeedProperty(),
+                fx.soundtrackNameProperty(),
+                fx.minutesOfWaitingProperty(),
+                fx.moodProperty(),
+                fx.carNameProperty(),
+                fx.ownerLoginProperty());
     }
 
     /** Предикат фильтрации, построенный через Streams API внутри HumanBeingFx.matchesFilter. */
