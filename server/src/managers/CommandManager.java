@@ -6,12 +6,13 @@ import network.Response;
 
 import java.util.ArrayDeque;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 /**
  * Менеджер команд сервера.
  */
 public class CommandManager {
-    private final HashMap<String, Command> commands = new HashMap<>();
+    private final HashMap<String, Command> commands = new LinkedHashMap<>();
     private final ArrayDeque<String> lastCommands = new ArrayDeque<>();
 
     public void addCommand(Command command) {

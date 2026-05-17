@@ -12,7 +12,8 @@ public class PrintAscending extends Command {
     private final CollectionManager collectionManager;
 
     public PrintAscending(CollectionManager collectionManager) {
-        super("print_ascending");
+        super("print_ascending", "print_ascending", "help.command.print_ascending",
+                "вывести элементы в порядке возрастания");
         this.collectionManager = collectionManager;
     }
 

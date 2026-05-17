@@ -28,10 +28,15 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.Pane;
+import network.CollectionInfo;
+import network.CommandInfo;
+import network.Response;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class MainController {
 
@@ -393,19 +398,63 @@ public class MainController {
     @FXML
     private void onInfo() {
         runCommand("info", new String[0], null, response ->
-                gui.util.Dialogs.info(window(), "info.title", response.getMessage()));
+                gui.util.Dialogs.info(window(), "info.title", formatInfo(response)));
     }
 
     @FXML
     private void onHelp() {
         runCommand("help", new String[0], null, response ->
-                gui.util.Dialogs.info(window(), "help.title", response.getMessage()));
+                gui.util.Dialogs.info(window(), "help.title", formatHelp(response)));
     }
 
     @FXML
     private void onHistory() {
         runCommand("history", new String[0], null, response ->
-                gui.util.Dialogs.info(window(), "history.title", response.getMessage()));
+                gui.util.Dialogs.info(window(), "history.title", formatHistory(response)));
+    }
+
+    private String formatInfo(Response response) {
+        if (response.getPayload() instanceof CollectionInfo info) {
+            return LocaleManager.get().tr("info.type", info.getType()) + "\n" +
+                    LocaleManager.get().tr("info.initializationDate",
+                            LocalizedFormatter.formatLocalDate(info.getCreationDate())) + "\n" +
+                    LocaleManager.get().tr("info.elementsCount",
+                            LocalizedFormatter.formatInteger(info.getSize()));
+        }
+        return response.getMessage();
+    }
+
+    private String formatHelp(Response response) {
+        if (response.getPayload() instanceof List<?> payload) {
+            List<CommandInfo> commands = payload.stream()
+                    .filter(CommandInfo.class::isInstance)
+                    .map(CommandInfo.class::cast)
+                    .collect(Collectors.toList());
+            if (!commands.isEmpty()) {
+                String body = commands.stream()
+                        .map(command -> command.getUsage() + " : " +
+                                LocaleManager.get().trOrDefault(command.getDescriptionKey(),
+                                        command.getFallbackDescription()))
+                        .collect(Collectors.joining("\n"));
+                return LocaleManager.get().tr("help.commands") + "\n" + body;
+            }
+        }
+        return response.getMessage();
+    }
+
+    private String formatHistory(Response response) {
+        if (response.getPayload() instanceof List<?> payload) {
+            List<String> commands = payload.stream()
+                    .filter(String.class::isInstance)
+                    .map(String.class::cast)
+                    .collect(Collectors.toList());
+            if (commands.isEmpty()) {
+                return LocaleManager.get().tr("history.empty");
+            }
+            return LocaleManager.get().tr("history.commands") + "\n" +
+                    String.join("\n", commands);
+        }
+        return response.getMessage();
     }
 
     @FXML

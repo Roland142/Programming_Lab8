@@ -11,7 +11,8 @@ public class Register extends Command {
     private final AuthManager authManager;
 
     public Register(AuthManager authManager) {
-        super("register");
+        super("register", "register", "help.command.register",
+                "зарегистрировать нового пользователя", false);
         this.authManager = authManager;
     }
 

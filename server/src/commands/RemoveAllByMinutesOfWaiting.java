@@ -14,7 +14,10 @@ public class RemoveAllByMinutesOfWaiting extends Command {
     private final DatabaseManager db;
 
     public RemoveAllByMinutesOfWaiting(CollectionManager collectionManager, DatabaseManager db) {
-        super("remove_all_by_minutes_of_waiting");
+        super("remove_all_by_minutes_of_waiting",
+                "remove_all_by_minutes_of_waiting {minutes}",
+                "help.command.remove_all_by_minutes_of_waiting",
+                "удалить свои элементы с заданным minutesOfWaiting");
         this.collectionManager = collectionManager;
         this.db = db;
     }

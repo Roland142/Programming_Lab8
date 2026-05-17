@@ -14,7 +14,8 @@ public class RemoveKey extends Command {
     private final DatabaseManager db;
 
     public RemoveKey(CollectionManager collectionManager, DatabaseManager db) {
-        super("remove_key");
+        super("remove_key", "remove_key {key}", "help.command.remove_key",
+                "удалить элемент по ключу");
         this.collectionManager = collectionManager;
         this.db = db;
     }

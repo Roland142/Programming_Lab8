@@ -39,9 +39,14 @@ public final class LocalizedFormatter {
     public static String formatDate(Date date) {
         if (date == null) return "";
         LocalDate ld = toLocalDate(date);
+        return formatLocalDate(ld);
+    }
+
+    public static String formatLocalDate(LocalDate date) {
+        if (date == null) return "";
         return DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)
                 .withLocale(active())
-                .format(ld);
+                .format(date);
     }
 
     public static String formatDateTime(Date date) {

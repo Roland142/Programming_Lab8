@@ -14,7 +14,7 @@ public class Clear extends Command {
     private final DatabaseManager db;
 
     public Clear(CollectionManager collectionManager, DatabaseManager db) {
-        super("clear");
+        super("clear", "clear", "help.command.clear", "удалить все свои элементы");
         this.collectionManager = collectionManager;
         this.db = db;
     }

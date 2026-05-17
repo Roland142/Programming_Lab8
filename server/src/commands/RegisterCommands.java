@@ -9,14 +9,14 @@ public class RegisterCommands {
 
     public static void register(CommandManager commandManager, CollectionManager collectionManager,
                                 DatabaseManager db, AuthManager authManager) {
-        commandManager.addCommand(new ExecuteScript());
-        commandManager.addCommand(new Help());
+        commandManager.addCommand(new Help(commandManager));
         commandManager.addCommand(new Info(collectionManager));
         commandManager.addCommand(new Show(collectionManager));
         commandManager.addCommand(new Insert(collectionManager, db));
         commandManager.addCommand(new Update(collectionManager, db));
         commandManager.addCommand(new RemoveKey(collectionManager, db));
         commandManager.addCommand(new Clear(collectionManager, db));
+        commandManager.addCommand(new ExecuteScript());
         commandManager.addCommand(new RemoveLower(collectionManager, db));
         commandManager.addCommand(new History(commandManager));
         commandManager.addCommand(new RemoveGreaterKey(collectionManager, db));

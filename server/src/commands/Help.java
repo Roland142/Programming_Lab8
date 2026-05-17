@@ -1,32 +1,33 @@
 package commands;
 
+import managers.CommandManager;
+import network.CommandInfo;
 import network.Request;
 import network.Response;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 /** Команда help — возвращает справку по всем доступным командам. */
 public class Help extends Command {
+    private final CommandManager commandManager;
 
-    public Help() {
-        super("help");
+    public Help(CommandManager commandManager) {
+        super("help", "help", "help.command.help", "вывести справку по доступным командам");
+        this.commandManager = commandManager;
     }
 
     @Override
     public Response execute(Request request) {
-        String help = "Доступные команды:\n" +
-                "help : вывести справку по доступным командам\n" +
-                "info : вывести информацию о коллекции\n" +
-                "show : вывести все элементы коллекции\n" +
-                "insert {key} : добавить новый элемент с заданным ключом\n" +
-                "update {id} : обновить элемент коллекции с заданным id\n" +
-                "remove_key {key} : удалить элемент по ключу\n" +
-                "clear : удалить все свои элементы\n" +
-                "execute_script {file_name} : исполнить скрипт из файла\n" +
-                "remove_lower : удалить все свои элементы, меньшие заданного\n" +
-                "history : вывести последние 12 команд\n" +
-                "remove_greater_key {key} : удалить свои элементы с ключом больше заданного\n" +
-                "remove_all_by_minutes_of_waiting {minutes} : удалить свои элементы с заданным minutesOfWaiting\n" +
-                "print_ascending : вывести элементы в порядке возрастания\n" +
-                "print_field_ascending_impact_speed : вывести значения impactSpeed в порядке возрастания";
-        return new Response(help, true);
+        List<CommandInfo> commands = commandManager.getCommands().values().stream()
+                .filter(Command::isVisibleInHelp)
+                .map(command -> new CommandInfo(command.getName(), command.getUsage(),
+                        command.getDescriptionKey(), command.getFallbackDescription()))
+                .collect(Collectors.toList());
+
+        String help = "Доступные команды:\n" + commands.stream()
+                .map(command -> command.getUsage() + " : " + command.getFallbackDescription())
+                .collect(Collectors.joining("\n"));
+        return new Response(help, true, commands);
     }
 }

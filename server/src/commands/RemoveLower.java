@@ -15,7 +15,8 @@ public class RemoveLower extends Command {
     private final DatabaseManager db;
 
     public RemoveLower(CollectionManager collectionManager, DatabaseManager db) {
-        super("remove_lower");
+        super("remove_lower", "remove_lower", "help.command.remove_lower",
+                "удалить все свои элементы, меньшие заданного");
         this.collectionManager = collectionManager;
         this.db = db;
     }

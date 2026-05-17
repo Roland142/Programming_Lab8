@@ -12,7 +12,9 @@ public class PrintFieldAscendingImpactSpeed extends Command {
     private final CollectionManager collectionManager;
 
     public PrintFieldAscendingImpactSpeed(CollectionManager collectionManager) {
-        super("print_field_ascending_impact_speed");
+        super("print_field_ascending_impact_speed", "print_field_ascending_impact_speed",
+                "help.command.print_field_ascending_impact_speed",
+                "вывести значения impactSpeed в порядке возрастания");
         this.collectionManager = collectionManager;
     }
 

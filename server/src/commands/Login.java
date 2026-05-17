@@ -11,7 +11,7 @@ public class Login extends Command {
     private final AuthManager authManager;
 
     public Login(AuthManager authManager) {
-        super("login");
+        super("login", "login", "help.command.login", "войти в систему", false);
         this.authManager = authManager;
     }
 

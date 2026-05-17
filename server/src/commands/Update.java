@@ -16,7 +16,8 @@ public class Update extends Command {
     private final DatabaseManager db;
 
     public Update(CollectionManager collectionManager, DatabaseManager db) {
-        super("update");
+        super("update", "update {id}", "help.command.update",
+                "обновить элемент коллекции с заданным id");
         this.collectionManager = collectionManager;
         this.db = db;
     }

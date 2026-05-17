@@ -61,6 +61,14 @@ public final class LocaleManager {
         }
     }
 
+    public String trOrDefault(String key, String fallback) {
+        try {
+            return ResourceBundle.getBundle(BUNDLE_NAME, getLocale()).getString(key);
+        } catch (MissingResourceException e) {
+            return fallback == null ? key : fallback;
+        }
+    }
+
     /** Возвращает строку с подстановкой аргументов через MessageFormat */
     public String tr(String key, Object... args) {
         String pattern = tr(key);

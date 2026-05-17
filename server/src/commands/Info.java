@@ -1,6 +1,7 @@
 package commands;
 
 import managers.CollectionManager;
+import network.CollectionInfo;
 import network.Request;
 import network.Response;
 
@@ -9,15 +10,19 @@ public class Info extends Command {
     private final CollectionManager collectionManager;
 
     public Info(CollectionManager collectionManager) {
-        super("info");
+        super("info", "info", "help.command.info", "вывести информацию о коллекции");
         this.collectionManager = collectionManager;
     }
 
     @Override
     public Response execute(Request request) {
-        String info = "Тип: " + collectionManager.getCollection().getClass().getName() + "\n" +
-                      "Дата инициализации: " + collectionManager.getCreationDate() + "\n" +
-                      "Количество элементов: " + collectionManager.getCollection().size();
-        return new Response(info, true);
+        CollectionInfo payload = new CollectionInfo(
+                collectionManager.getCollection().getClass().getName(),
+                collectionManager.getCreationDate(),
+                collectionManager.getCollection().size());
+        String info = "Тип: " + payload.getType() + "\n" +
+                      "Дата инициализации: " + payload.getCreationDate() + "\n" +
+                      "Количество элементов: " + payload.getSize();
+        return new Response(info, true, payload);
     }
 }

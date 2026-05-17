@@ -14,7 +14,9 @@ public class RemoveGreaterKey extends Command {
     private final DatabaseManager db;
 
     public RemoveGreaterKey(CollectionManager collectionManager, DatabaseManager db) {
-        super("remove_greater_key");
+        super("remove_greater_key", "remove_greater_key {key}",
+                "help.command.remove_greater_key",
+                "удалить свои элементы с ключом больше заданного");
         this.collectionManager = collectionManager;
         this.db = db;
     }

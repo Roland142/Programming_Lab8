@@ -17,7 +17,8 @@ public class Insert extends Command {
     private final DatabaseManager db;
 
     public Insert(CollectionManager collectionManager, DatabaseManager db) {
-        super("insert");
+        super("insert", "insert {key}", "help.command.insert",
+                "добавить новый элемент с заданным ключом");
         this.collectionManager = collectionManager;
         this.db = db;
     }

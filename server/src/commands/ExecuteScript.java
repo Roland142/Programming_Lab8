@@ -10,7 +10,8 @@ import network.Response;
 public class ExecuteScript extends Command {
 
     public ExecuteScript() {
-        super("execute_script");
+        super("execute_script", "execute_script {file_name}", "help.command.execute_script",
+                "исполнить скрипт из файла");
     }
 
     @Override

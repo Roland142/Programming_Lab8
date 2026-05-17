@@ -22,7 +22,7 @@ public class Show extends Command {
     private final CollectionManager collectionManager;
 
     public Show(CollectionManager collectionManager) {
-        super("show");
+        super("show", "show", "help.command.show", "вывести все элементы коллекции");
         this.collectionManager = collectionManager;
     }
 
