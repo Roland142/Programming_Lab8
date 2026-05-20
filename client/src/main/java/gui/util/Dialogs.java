@@ -8,7 +8,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
@@ -17,7 +16,6 @@ import javafx.stage.StageStyle;
 import javafx.stage.Window;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
@@ -149,39 +147,4 @@ public final class Dialogs {
         return stage;
     }
 
-    /**
-     * Возвращает первый пользовательский ввод как Optional&lt;String&gt; (для
-     * случаев, когда обработчик хочет синхронно получить значение через showAndWait).
-     */
-    public static Optional<String> promptAndWait(Window owner, String titleKey, String labelKey) {
-        Stage stage = baseStage(owner, LocaleManager.get().tr(titleKey));
-        VBox root = (VBox) stage.getScene().getRoot();
-
-        Label label = new Label(LocaleManager.get().tr(labelKey));
-        label.getStyleClass().add("field-label");
-        TextField input = new TextField();
-        input.getStyleClass().add("text-input");
-        VBox body = new VBox(8, label, input);
-        body.setPadding(new Insets(20));
-
-        Region spacer = new Region();
-        Button cancelBtn = new Button(LocaleManager.get().tr("dialog.cancel"));
-        cancelBtn.getStyleClass().addAll("btn", "btn-secondary");
-        cancelBtn.setPrefWidth(140);
-        Button okBtn = new Button(LocaleManager.get().tr("dialog.ok"));
-        okBtn.getStyleClass().addAll("btn", "btn-accent");
-        okBtn.setPrefWidth(140);
-
-        final String[] result = { null };
-        cancelBtn.setOnAction(e -> stage.close());
-        okBtn.setOnAction(e -> { result[0] = input.getText(); stage.close(); });
-
-        HBox footer = new HBox(12, cancelBtn, okBtn);
-        footer.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
-        footer.setPadding(new Insets(12, 20, 16, 20));
-
-        root.getChildren().addAll(body, footer);
-        stage.showAndWait();
-        return Optional.ofNullable(result[0]).map(String::trim).filter(s -> !s.isEmpty());
-    }
 }
