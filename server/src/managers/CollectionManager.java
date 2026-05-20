@@ -12,14 +12,9 @@ import exceptions.InvalidDataException;
 import elements.*;
 import java.time.LocalDate;
 
-/**
- * Менеджер коллекции элементов HumanBeing.
- * Хранит данные в TreeMap (ключ — long, значение — HumanBeing).
- * Потокобезопасен через ReentrantLock — все публичные методы выполняются под локом.
- */
 public class CollectionManager {
     private final TreeMap<Long, HumanBeing> collection = new TreeMap<>();
-    private final Map<Long, String> ownerByKey = new HashMap<>(); // map_key → owner_login
+    private final Map<Long, String> ownerByKey = new HashMap<>();
     private final LocalDate creationDate;
     private final ReentrantLock lock = new ReentrantLock();
 
@@ -27,16 +22,8 @@ public class CollectionManager {
         this.creationDate = LocalDate.now();
     }
 
-    // -------------------------------------------------------------------------
-    // Синхронизация
-    // -------------------------------------------------------------------------
-
     public void lock()   { lock.lock(); }
     public void unlock() { lock.unlock(); }
-
-    // -------------------------------------------------------------------------
-    // Owner
-    // -------------------------------------------------------------------------
 
     public String getOwner(long key) {
         lock.lock();
@@ -64,10 +51,6 @@ public class CollectionManager {
             lock.unlock();
         }
     }
-
-    // -------------------------------------------------------------------------
-    // Чтение
-    // -------------------------------------------------------------------------
 
     public TreeMap<Long, HumanBeing> getCollection() {
         lock.lock();
@@ -127,10 +110,6 @@ public class CollectionManager {
         }
     }
 
-    // -------------------------------------------------------------------------
-    // Запись (вызываются только после успешной операции в БД)
-    // -------------------------------------------------------------------------
-
     public void insert(long key, HumanBeing hb, String ownerLogin) {
         lock.lock();
         try {
@@ -170,10 +149,6 @@ public class CollectionManager {
         }
     }
 
-    /**
-     * Удаляет элементы по списку map_key.
-     * Вызывается после того как БД вернула список удалённых ключей.
-     */
     public void removeByKeys(List<Long> keys) {
         lock.lock();
         try {
