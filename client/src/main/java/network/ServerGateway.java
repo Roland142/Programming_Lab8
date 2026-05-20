@@ -23,14 +23,34 @@ public class ServerGateway {
         Response response = trySend(request);
         if (response == null) {
             System.out.println("Соединение потеряно. Переподключение...");
-            close();
-            channel = Connection.reconnect();
-            if (channel == null) throw new ServerUnavailableException();
-            response = trySend(request);
-            if (response == null) throw new ServerUnavailableException();
-            System.out.println("Переподключение успешно!");
+            response = reconnectAndSend(request);
         }
         return response;
+    }
+
+    private Response reconnectAndSend(Request request) throws ServerUnavailableException {
+        for (int attempt = 1; attempt <= 3; attempt++) {
+            System.out.println("Попытка " + attempt + "/3...");
+            close();
+            sleepBeforeRetry();
+            channel = Connection.connect();
+            if (channel == null) continue;
+
+            Response response = trySend(request);
+            if (response != null) {
+                System.out.println("Переподключение успешно!");
+                return response;
+            }
+        }
+        throw new ServerUnavailableException();
+    }
+
+    private void sleepBeforeRetry() {
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     private Response trySend(Request request) {
