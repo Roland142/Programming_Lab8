@@ -10,20 +10,21 @@ import java.nio.channels.SocketChannel;
 public class RequestSender {
 
     public static boolean send(SocketChannel channel, Request request) {
-    try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-         ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-        
-        oos.writeObject(request);
-        oos.flush();
-        
-        ByteBuffer sendBuf = ByteBuffer.wrap(baos.toByteArray());
-        
-        while (sendBuf.hasRemaining()) {
-            channel.write(sendBuf);
+        if (channel == null) return false;
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+
+            oos.writeObject(request);
+            oos.flush();
+
+            ByteBuffer sendBuf = ByteBuffer.wrap(baos.toByteArray());
+
+            while (sendBuf.hasRemaining()) {
+                channel.write(sendBuf);
+            }
+            return true;
+        } catch (IOException e) {
+            return false;
         }
-        return true;
-    } catch (IOException e) {
-        return false;
     }
-}
 }

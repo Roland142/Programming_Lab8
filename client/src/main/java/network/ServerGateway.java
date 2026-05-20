@@ -27,6 +27,7 @@ public class ServerGateway {
             channel = Connection.reconnect();
             if (channel == null) throw new ServerUnavailableException();
             response = trySend(request);
+            if (response == null) throw new ServerUnavailableException();
         }
         return response;
     }

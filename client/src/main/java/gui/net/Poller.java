@@ -23,7 +23,6 @@ import java.util.function.Consumer;
 public class Poller extends ScheduledService<List<HumanBeingEntry>> {
 
     private static final Duration PERIOD = Duration.seconds(3);
-    private static final Duration BACKOFF = Duration.seconds(5);
 
     private final CollectionStore store;
     private Consumer<Throwable> errorHandler;
@@ -31,9 +30,7 @@ public class Poller extends ScheduledService<List<HumanBeingEntry>> {
     public Poller(CollectionStore store) {
         this.store = store;
         setPeriod(PERIOD);
-        setRestartOnFailure(true);
-        setBackoffStrategy(EXPONENTIAL_BACKOFF_STRATEGY);
-        setMaximumCumulativePeriod(BACKOFF);
+        setRestartOnFailure(false);
 
         setOnSucceeded(e -> {
             @SuppressWarnings("unchecked")
