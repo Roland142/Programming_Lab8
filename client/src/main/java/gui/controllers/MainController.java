@@ -9,15 +9,9 @@ import gui.model.CollectionStore;
 import gui.model.HumanBeingFx;
 import gui.net.Poller;
 import gui.util.LocalizedFormatter;
-import gui.util.UserColorAssigner;
 import gui.view.CollectionCanvas;
-import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.IntegerBinding;
-import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -29,20 +23,10 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.Pane;
-import network.CollectionInfo;
-import network.CommandInfo;
-import network.Response;
 
-import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 public class MainController {
 
@@ -65,7 +49,7 @@ public class MainController {
     @FXML private MenuItem removeByMinutesItem;
 
     @FXML private TextField filterField;
-    @FXML private ComboBox<FilterColumn> filterColumnBox;
+    @FXML private ComboBox<TableBinder.FilterColumn> filterColumnBox;
     @FXML private TableView<HumanBeingFx> objectsTable;
     @FXML private TableColumn<HumanBeingFx, Number> idCol;
     @FXML private TableColumn<HumanBeingFx, Number> keyCol;
@@ -89,25 +73,25 @@ public class MainController {
     @FXML private Label statusLabel;
 
     private final CollectionStore store = new CollectionStore();
-    private final ObservableList<HumanBeingFx> visibleItems = FXCollections.observableArrayList();
-    private final Map<HumanBeingFx, InvalidationListener> itemRefreshListeners = new HashMap<>();
     private final Poller poller = new Poller(store);
     private CollectionCanvas collectionCanvas;
+    private TableBinder tableBinder;
+    private ScriptExecutor scriptExecutor;
 
     @FXML
     public void initialize() {
         bindLocalizedTexts();
         configureLanguageBox();
         configureUserLabel();
-        configureTable();
-        configureFilterAndSort();
         configureCanvas();
+        configureTable();
+        scriptExecutor = new ScriptExecutor(this::window, this::triggerImmediateSync);
         configureStatusBar();
 
         // Кастомные cellFactory не пересоздаются при смене локали — заставим таблицу
         // перерисовать ячейки, чтобы локализованные mood и числа обновились.
         LocaleManager.get().localeProperty().addListener((obs, prev, value) -> {
-            refreshVisibleItems();
+            tableBinder.refresh();
             objectsTable.refresh();
         });
 
@@ -122,49 +106,6 @@ public class MainController {
         canvasPane.getChildren().add(collectionCanvas);
 
         collectionCanvas.setOnObjectClick(this::showObjectPopup);
-
-        // Двойной клик в таблице по своему объекту → редактирование (Шаг 8).
-        objectsTable.setRowFactory(tv -> {
-            javafx.scene.control.TableRow<HumanBeingFx> row = new javafx.scene.control.TableRow<>();
-            row.setOnMouseClicked(e -> {
-                if (e.getClickCount() == 2 && !row.isEmpty()) {
-                    HumanBeingFx fx = row.getItem();
-                    if (fx.getOwnerLogin().equals(Session.get().context().getLogin())) {
-                        openEditDialog(fx);
-                    }
-                }
-            });
-            return row;
-        });
-
-        // Раскраска ячеек владельца и настроения (текстовый цвет)
-        ownerCol.setCellFactory(col -> new javafx.scene.control.TableCell<>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                    setStyle("");
-                    return;
-                }
-                setText(item);
-                setStyle("-fx-text-fill: " + UserColorAssigner.hexFor(item) + "; -fx-font-weight: bold;");
-            }
-        });
-
-        moodCol.setCellFactory(col -> new javafx.scene.control.TableCell<>() {
-            @Override
-            protected void updateItem(Mood item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                    setStyle("");
-                    return;
-                }
-                setText(LocaleManager.get().tr("mood." + item.name()));
-                setStyle("-fx-text-fill: " + gui.util.MoodColorMap.hexFor(item) + ";");
-            }
-        });
     }
 
     private void showObjectPopup(HumanBeingFx fx) {
@@ -264,215 +205,11 @@ public class MainController {
     }
 
     private void configureTable() {
-        idCol.setCellValueFactory(new PropertyValueFactory<>("id"));
-        keyCol.setCellValueFactory(new PropertyValueFactory<>("key"));
-        nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
-        creationDateCol.setCellValueFactory(new PropertyValueFactory<>("creationDate"));
-        xCol.setCellValueFactory(new PropertyValueFactory<>("x"));
-        yCol.setCellValueFactory(new PropertyValueFactory<>("y"));
-        realHeroCol.setCellValueFactory(new PropertyValueFactory<>("realHero"));
-        hasToothpickCol.setCellValueFactory(new PropertyValueFactory<>("hasToothpick"));
-        speedCol.setCellValueFactory(new PropertyValueFactory<>("impactSpeed"));
-        soundtrackCol.setCellValueFactory(new PropertyValueFactory<>("soundtrackName"));
-        minutesCol.setCellValueFactory(new PropertyValueFactory<>("minutesOfWaiting"));
-        moodCol.setCellValueFactory(new PropertyValueFactory<>("mood"));
-        carCol.setCellValueFactory(new PropertyValueFactory<>("carName"));
-        ownerCol.setCellValueFactory(new PropertyValueFactory<>("ownerLogin"));
-
-        xCol.setCellFactory(col -> numericCell(v -> LocalizedFormatter.formatDouble(v.doubleValue())));
-        yCol.setCellFactory(col -> numericCell(v -> LocalizedFormatter.formatLong(v.longValue())));
-        speedCol.setCellFactory(col -> numericCell(v -> LocalizedFormatter.formatDouble(v.doubleValue())));
-        idCol.setCellFactory(col -> numericCell(v -> LocalizedFormatter.formatLong(v.longValue())));
-        keyCol.setCellFactory(col -> numericCell(v -> LocalizedFormatter.formatLong(v.longValue())));
-        minutesCol.setCellFactory(col -> numericCell(v -> LocalizedFormatter.formatInteger(v.intValue())));
-        creationDateCol.setCellFactory(col -> dateCell());
-        realHeroCol.setCellFactory(col -> booleanCell(false));
-        hasToothpickCol.setCellFactory(col -> booleanCell(true));
-
-        // Цветной cellFactory для moodCol и ownerCol устанавливается в configureCanvas.
-    }
-
-    private <T extends Number> javafx.scene.control.TableCell<HumanBeingFx, Number>
-            numericCell(java.util.function.Function<Number, String> formatter) {
-        return new javafx.scene.control.TableCell<>() {
-            @Override
-            protected void updateItem(Number item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty || item == null ? null : formatter.apply(item));
-            }
-        };
-    }
-
-    private javafx.scene.control.TableCell<HumanBeingFx, Date> dateCell() {
-        return new javafx.scene.control.TableCell<>() {
-            @Override
-            protected void updateItem(Date item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty || item == null ? null : LocalizedFormatter.formatDate(item));
-            }
-        };
-    }
-
-    private javafx.scene.control.TableCell<HumanBeingFx, Boolean> booleanCell(boolean nullable) {
-        return new javafx.scene.control.TableCell<>() {
-            @Override
-            protected void updateItem(Boolean item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty) {
-                    setText(null);
-                    return;
-                }
-                if (item == null) {
-                    setText(nullable ? LocaleManager.get().tr("popup.dash") : null);
-                    return;
-                }
-                setText(LocaleManager.get().tr(item ? "popup.yes" : "popup.no"));
-            }
-        };
-    }
-
-    private void configureFilterAndSort() {
-        configureFilterColumnBox();
-        objectsTable.setItems(visibleItems);
-        objectsTable.setSortPolicy(table -> {
-            refreshVisibleItems();
-            return true;
-        });
-
-        filterField.textProperty().addListener((obs, prev, value) -> refreshVisibleItems());
-        filterColumnBox.valueProperty().addListener((obs, prev, value) -> refreshVisibleItems());
-        store.items().addListener((ListChangeListener<HumanBeingFx>) change -> {
-            while (change.next()) {
-                change.getRemoved().forEach(this::unregisterItemRefresh);
-                change.getAddedSubList().forEach(this::registerItemRefresh);
-            }
-            refreshVisibleItems();
-        });
-        store.items().forEach(this::registerItemRefresh);
-        refreshVisibleItems();
-    }
-
-    private void configureFilterColumnBox() {
-        filterColumnBox.getItems().setAll(FilterColumn.values());
-        filterColumnBox.promptTextProperty().bind(Localizer.binding("filter.column.all"));
-        filterColumnBox.setCellFactory(list -> filterColumnCell());
-        filterColumnBox.setButtonCell(filterColumnCell());
-        LocaleManager.get().localeProperty().addListener((obs, prev, value) ->
-                filterColumnBox.setButtonCell(filterColumnCell()));
-    }
-
-    private ListCell<FilterColumn> filterColumnCell() {
-        return new ListCell<>() {
-            @Override
-            protected void updateItem(FilterColumn item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty || item == null ? null : LocaleManager.get().tr(item.labelKey));
-            }
-        };
-    }
-
-    private void refreshVisibleItems() {
-        Predicate<HumanBeingFx> filter = buildFilter(filterField.getText(), filterColumnBox.getValue());
-        Comparator<HumanBeingFx> comparator = objectsTable.getComparator();
-
-        var stream = store.items().stream().filter(filter);
-        if (comparator != null) {
-            stream = stream.sorted(comparator);
-        }
-        visibleItems.setAll(stream.collect(Collectors.toList()));
-    }
-
-    private void registerItemRefresh(HumanBeingFx fx) {
-        if (itemRefreshListeners.containsKey(fx)) return;
-        InvalidationListener listener = ignored -> refreshVisibleItems();
-        itemRefreshListeners.put(fx, listener);
-        itemProperties(fx).forEach(property -> property.addListener(listener));
-    }
-
-    private void unregisterItemRefresh(HumanBeingFx fx) {
-        InvalidationListener listener = itemRefreshListeners.remove(fx);
-        if (listener == null) return;
-        itemProperties(fx).forEach(property -> property.removeListener(listener));
-    }
-
-    private List<ObservableValue<?>> itemProperties(HumanBeingFx fx) {
-        return List.of(
-                fx.idProperty(),
-                fx.keyProperty(),
-                fx.nameProperty(),
-                fx.creationDateProperty(),
-                fx.xProperty(),
-                fx.yProperty(),
-                fx.realHeroProperty(),
-                fx.hasToothpickProperty(),
-                fx.impactSpeedProperty(),
-                fx.soundtrackNameProperty(),
-                fx.minutesOfWaitingProperty(),
-                fx.moodProperty(),
-                fx.carNameProperty(),
-                fx.ownerLoginProperty());
-    }
-
-    /** Предикат фильтрации применяется в Stream API внутри refreshVisibleItems. */
-    private Predicate<HumanBeingFx> buildFilter(String text, FilterColumn column) {
-        if (column == null || column == FilterColumn.ALL) {
-            return fx -> fx.matchesFilter(text);
-        }
-        return fx -> matchesColumn(fx, column, text);
-    }
-
-    private boolean matchesColumn(HumanBeingFx fx, FilterColumn column, String text) {
-        if (text == null || text.isBlank()) return true;
-        String value = valueForColumn(fx, column);
-        return value != null && value.toLowerCase(Locale.ROOT).contains(text.toLowerCase(Locale.ROOT).trim());
-    }
-
-    private String valueForColumn(HumanBeingFx fx, FilterColumn column) {
-        return switch (column) {
-            case ID -> LocalizedFormatter.formatLong(fx.getId());
-            case KEY -> LocalizedFormatter.formatLong(fx.getKey());
-            case NAME -> fx.getName();
-            case CREATION_DATE -> LocalizedFormatter.formatDate(fx.getCreationDate());
-            case X -> LocalizedFormatter.formatDouble(fx.getX());
-            case Y -> LocalizedFormatter.formatInteger(fx.getY());
-            case REAL_HERO -> LocaleManager.get().tr(fx.isRealHero() ? "popup.yes" : "popup.no");
-            case HAS_TOOTHPICK -> fx.getHasToothpick() == null
-                    ? LocaleManager.get().tr("popup.dash")
-                    : LocaleManager.get().tr(fx.getHasToothpick() ? "popup.yes" : "popup.no");
-            case SPEED -> LocalizedFormatter.formatDouble(fx.getImpactSpeed());
-            case SOUNDTRACK -> fx.getSoundtrackName();
-            case MINUTES -> LocalizedFormatter.formatInteger(fx.getMinutesOfWaiting());
-            case MOOD -> fx.getMood() == null
-                    ? LocaleManager.get().tr("popup.dash")
-                    : LocaleManager.get().tr("mood." + fx.getMood().name());
-            case CAR -> fx.getCarName();
-            case OWNER -> fx.getOwnerLogin();
-            case ALL -> "";
-        };
-    }
-
-    private enum FilterColumn {
-        ALL("filter.column.all"),
-        ID("table.id"),
-        KEY("table.key"),
-        NAME("table.name"),
-        CREATION_DATE("table.creationDate"),
-        X("table.x"),
-        Y("table.y"),
-        REAL_HERO("table.realHero"),
-        HAS_TOOTHPICK("table.hasToothpick"),
-        SPEED("table.speed"),
-        SOUNDTRACK("table.soundtrack"),
-        MINUTES("table.minutes"),
-        MOOD("table.mood"),
-        CAR("table.car"),
-        OWNER("table.owner");
-
-        private final String labelKey;
-
-        FilterColumn(String labelKey) {
-            this.labelKey = labelKey;
-        }
+        tableBinder = new TableBinder(store, objectsTable, filterField, filterColumnBox,
+                idCol, keyCol, nameCol, creationDateCol, xCol, yCol, realHeroCol,
+                hasToothpickCol, speedCol, soundtrackCol, minutesCol, moodCol, carCol,
+                ownerCol, this::openEditDialog);
+        tableBinder.configure();
     }
 
     private void configureStatusBar() {
@@ -540,237 +277,24 @@ public class MainController {
     @FXML
     private void onInfo() {
         runCommand("info", new String[0], null, response ->
-                gui.util.Dialogs.info(window(), "info.title", formatInfo(response)));
+                gui.util.Dialogs.info(window(), "info.title", CommandResponseFormatter.formatInfo(response)));
     }
 
     @FXML
     private void onHelp() {
         runCommand("help", new String[0], null, response ->
-                gui.util.Dialogs.info(window(), "help.title", formatHelp(response)));
+                gui.util.Dialogs.info(window(), "help.title", CommandResponseFormatter.formatHelp(response)));
     }
 
     @FXML
     private void onHistory() {
         runCommand("history", new String[0], null, response ->
-                gui.util.Dialogs.info(window(), "history.title", formatHistory(response)));
-    }
-
-    private String formatInfo(Response response) {
-        if (response.getPayload() instanceof CollectionInfo info) {
-            return LocaleManager.get().tr("info.type", info.getType()) + "\n" +
-                    LocaleManager.get().tr("info.initializationDate",
-                            LocalizedFormatter.formatLocalDate(info.getCreationDate())) + "\n" +
-                    LocaleManager.get().tr("info.elementsCount",
-                            LocalizedFormatter.formatInteger(info.getSize()));
-        }
-        return response.getMessage();
-    }
-
-    private String formatHelp(Response response) {
-        if (response.getPayload() instanceof List<?> payload) {
-            List<CommandInfo> commands = payload.stream()
-                    .filter(CommandInfo.class::isInstance)
-                    .map(CommandInfo.class::cast)
-                    .collect(Collectors.toList());
-            if (!commands.isEmpty()) {
-                String body = commands.stream()
-                        .map(command -> command.getUsage() + " : " +
-                                LocaleManager.get().trOrDefault(command.getDescriptionKey(),
-                                        command.getFallbackDescription()))
-                        .collect(Collectors.joining("\n"));
-                return LocaleManager.get().tr("help.commands") + "\n" + body;
-            }
-        }
-        return response.getMessage();
-    }
-
-    private String formatHistory(Response response) {
-        if (response.getPayload() instanceof List<?> payload) {
-            List<String> commands = payload.stream()
-                    .filter(String.class::isInstance)
-                    .map(String.class::cast)
-                    .collect(Collectors.toList());
-            if (commands.isEmpty()) {
-                return LocaleManager.get().tr("history.empty");
-            }
-            return LocaleManager.get().tr("history.commands") + "\n" +
-                    String.join("\n", commands);
-        }
-        return response.getMessage();
+                gui.util.Dialogs.info(window(), "history.title", CommandResponseFormatter.formatHistory(response)));
     }
 
     @FXML
     private void onScript() {
-        javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
-        chooser.setTitle(LocaleManager.get().tr("script.choose"));
-        java.io.File file = chooser.showOpenDialog(window());
-        if (file == null) return;
-
-        java.util.List<String> lines;
-        try {
-            lines = java.nio.file.Files.readAllLines(file.toPath());
-        } catch (java.io.IOException ex) {
-            gui.util.Dialogs.info(window(), "script.title", ex.getMessage());
-            return;
-        }
-        if (lines.isEmpty()) {
-            gui.util.Dialogs.info(window(), "script.title",
-                    LocaleManager.get().tr("script.empty"));
-            return;
-        }
-
-        Thread runner = new Thread(() -> {
-            StringBuilder log = new StringBuilder();
-            int executed = 0;
-            ScriptCursor cursor = new ScriptCursor(lines);
-            while (cursor.hasNext()) {
-                String line = cursor.nextCommandLine();
-                if (line == null) break;
-                int lineNumber = cursor.lastLineNumber();
-                String[] parts = line.split("\\s+");
-                String cmd = parts[0];
-                String[] args = java.util.Arrays.copyOfRange(parts, 1, parts.length);
-                try {
-                    if ("exit".equals(cmd)) {
-                        log.append(LocaleManager.get().tr("script.line", lineNumber, "exit"))
-                           .append('\n');
-                        break;
-                    }
-                    if ("execute_script".equals(cmd)) {
-                        log.append(LocaleManager.get().tr("script.line", lineNumber,
-                                "skip — nested execute_script"))
-                           .append('\n');
-                        continue;
-                    }
-                    var ctx = Session.get().context();
-                    network.Request req = buildScriptRequest(cmd, args, cursor,
-                            ctx.getLogin(), ctx.getPasswordHash());
-                    network.Response resp = Session.get().gateway().sendBlocking(req);
-                    log.append(LocaleManager.get().tr("script.line", lineNumber, resp.getMessage()))
-                       .append('\n');
-                    executed++;
-                } catch (Exception ex) {
-                    log.append(LocaleManager.get().tr("script.line", lineNumber, ex.getMessage()))
-                       .append('\n');
-                }
-            }
-            int finalExecuted = executed;
-            String message = LocaleManager.get().tr("script.executed", finalExecuted)
-                    + "\n\n" + log;
-            javafx.application.Platform.runLater(() -> {
-                triggerImmediateSync();
-                gui.util.Dialogs.info(window(), "script.title", message);
-            });
-        }, "script-runner");
-        runner.setDaemon(true);
-        runner.start();
-    }
-
-    private network.Request buildScriptRequest(String cmd, String[] args, ScriptCursor cursor,
-                                               String login, String passwordHash) {
-        if ("insert".equals(cmd) && args.length == 0) {
-            throw new IllegalArgumentException("insert requires key");
-        }
-        if ("update".equals(cmd) && args.length == 0) {
-            throw new IllegalArgumentException("update requires id");
-        }
-        elements.HumanBeing hb = switch (cmd) {
-            case "insert", "update", "remove_lower" -> readHumanBeingFromScript(cursor);
-            default -> null;
-        };
-        if (hb == null && !isStatelessCommand(cmd)) {
-            throw new IllegalArgumentException("unsupported command: " + cmd);
-        }
-        return new network.Request(cmd, args, hb, login, passwordHash);
-    }
-
-    private elements.HumanBeing readHumanBeingFromScript(ScriptCursor cursor) {
-        try {
-            String name = cursor.nextValue("name");
-            double x = Double.parseDouble(cursor.nextValue("x").replace(',', '.'));
-            int y = Integer.parseInt(cursor.nextValue("y"));
-            boolean realHero = parseBoolean(cursor.nextValue("realHero"));
-            Boolean hasToothpick = parseNullableBoolean(cursor.nextValue("hasToothpick"));
-            double impactSpeed = Double.parseDouble(cursor.nextValue("impactSpeed").replace(',', '.'));
-            String soundtrackName = cursor.nextValue("soundtrackName");
-            int minutesOfWaiting = Integer.parseInt(cursor.nextValue("minutesOfWaiting"));
-            elements.Mood mood = parseMood(cursor.nextValue("mood"));
-            String carName = cursor.nextValue("car");
-            elements.Car car = isNullToken(carName) ? null : new elements.Car(carName);
-            return new elements.HumanBeing(name, new elements.Coordinates(x, y), realHero,
-                    hasToothpick, impactSpeed, soundtrackName, minutesOfWaiting, mood, car);
-        } catch (exceptions.InvalidDataException e) {
-            throw new IllegalArgumentException(e.getMessage(), e);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("invalid number: " + e.getMessage(), e);
-        }
-    }
-
-    private static boolean parseBoolean(String value) {
-        if ("true".equalsIgnoreCase(value)) return true;
-        if ("false".equalsIgnoreCase(value)) return false;
-        throw new IllegalArgumentException("expected true or false, got: " + value);
-    }
-
-    private static Boolean parseNullableBoolean(String value) {
-        if (isNullToken(value)) return null;
-        return parseBoolean(value);
-    }
-
-    private static elements.Mood parseMood(String value) {
-        if (isNullToken(value)) return null;
-        return elements.Mood.valueOf(value.toUpperCase(java.util.Locale.ROOT));
-    }
-
-    private static boolean isNullToken(String value) {
-        return value == null || value.isBlank()
-                || "-".equals(value)
-                || "null".equalsIgnoreCase(value);
-    }
-
-    private static boolean isStatelessCommand(String cmd) {
-        return java.util.Set.of(
-                "info", "help", "history", "show", "clear",
-                "remove_key", "remove_greater_key",
-                "remove_all_by_minutes_of_waiting",
-                "print_ascending", "print_field_ascending_impact_speed"
-        ).contains(cmd);
-    }
-
-    private static final class ScriptCursor {
-        private final java.util.List<String> lines;
-        private int index;
-        private int lastLineNumber;
-
-        private ScriptCursor(java.util.List<String> lines) {
-            this.lines = lines;
-        }
-
-        private boolean hasNext() {
-            return index < lines.size();
-        }
-
-        private int lastLineNumber() {
-            return lastLineNumber;
-        }
-
-        private String nextCommandLine() {
-            while (index < lines.size()) {
-                String line = lines.get(index).trim();
-                lastLineNumber = index + 1;
-                index++;
-                if (!line.isEmpty()) return line;
-            }
-            return null;
-        }
-
-        private String nextValue(String fieldName) {
-            String value = nextCommandLine();
-            if (value == null) {
-                throw new IllegalArgumentException("missing field: " + fieldName);
-            }
-            return value;
-        }
+        scriptExecutor.chooseAndRun();
     }
 
 
