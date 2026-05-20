@@ -28,6 +28,7 @@ public class ServerGateway {
             if (channel == null) throw new ServerUnavailableException();
             response = trySend(request);
             if (response == null) throw new ServerUnavailableException();
+            System.out.println("Переподключение успешно!");
         }
         return response;
     }

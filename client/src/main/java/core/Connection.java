@@ -38,7 +38,6 @@ public class Connection {
             try { Thread.sleep(2000); } catch (InterruptedException ignored) {}
             SocketChannel channel = connect();
             if (channel != null) {
-                System.out.println("Переподключение успешно!");
                 return channel;
             }
         }
